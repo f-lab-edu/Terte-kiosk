@@ -1,0 +1,6 @@
+rootProject.name = 'terte-kiosk'
+
+include 'core'
+include 'api'
+include 'service'
+include 'repository'
