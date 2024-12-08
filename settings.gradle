@@ -1,1 +1,3 @@
 rootProject.name = 'terte-kiosk'
+include ':application'
+
