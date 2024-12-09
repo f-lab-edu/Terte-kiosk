@@ -1,0 +1,10 @@
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### IntelliJ IDEA ###
+.idea
+out/
+
+# macOS의 .DS_Store 파일 제외
+*.DS_Store
