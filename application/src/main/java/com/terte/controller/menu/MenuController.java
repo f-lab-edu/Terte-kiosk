@@ -38,6 +38,11 @@ public class MenuController {
     @GetMapping("/{menuId}")
     public ResponseEntity<ApiResDTO<MenuDetailResDTO>> getMenuById(@PathVariable Long menuId) {
         MenuDetailResDTO detailMenu = menuService.getMenuDetailById(menuId);
+        if (detailMenu == null) {
+            //TODO: 예외를 던져서 API 응답을 처리하는 방법으로 변경 - 컨트롤러에서 예외를 던지는 것이 아니라, 서비스에서 예외를 던지도록 변경
+            //throw new MenuNotFoundException();
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(ApiResDTO.success(detailMenu));
     }
 

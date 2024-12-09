@@ -2,6 +2,7 @@ package com.terte.controller.menu;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.common.enums.MenuCategory;
+import com.terte.dto.menu.MenuDetailResDTO;
 import com.terte.dto.menu.MenuResDTO;
 import com.terte.service.menu.MenuService;
 import org.junit.jupiter.api.DisplayName;
@@ -96,6 +97,53 @@ class MenuControllerTest {
                         .param("category", "NOT_EXIST_CATEGORY")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    @DisplayName("존재하는 메뉴 ID로 요청 시 메뉴 상세 정보를 반환한다")
+    void testGetMenuByIdSuccess() throws Exception {
+        MenuDetailResDTO menuDetail = new MenuDetailResDTO(1L, "Americano","아메리카노 설명", 5000, MenuCategory.COFFEE, null, null);
+
+        Mockito.when(menuService.getMenuDetailById(1L)).thenReturn(menuDetail);
+
+        mockMvc.perform(get("/menus/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(1L))
+                .andExpect(jsonPath("$.data.name").value("Americano"))
+                .andExpect(jsonPath("$.data.category").value("COFFEE"))
+                .andExpect(jsonPath("$.data.description").value("아메리카노 설명"));
+    }
+
+    @Test
+    @DisplayName("메뉴 상세 조회 시 존재하지 않는 메뉴 ID로 요청 시 404 Not Found를 반환한다")
+    void testGetMenuByIdNotFound() throws Exception {
+        Mockito.when(menuService.getMenuDetailById(999L))
+                .thenReturn(null);
+        //TODO: 예외를 던져서 API 응답을 처리하는 방법으로 변경 - 컨트롤러에서 예외를 던지는 것이 아니라, 서비스에서 예외를 던지도록 변경
+        mockMvc.perform(get("/menus/999")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("메뉴 상세 조회 시 유효하지 않은 ID로 요청 시 400 Bad Request를 반환한다")
+    void testGetMenuByIdInvalidId() throws Exception {
+        mockMvc.perform(get("/menus/invalid-id")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("메뉴 상세 조회 시 서비스에서 예외 발생 시 500 Internal Server Error를 반환한다")
+    void testGetMenuByIdServiceException() throws Exception {
+        Mockito.when(menuService.getMenuDetailById(1L))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        mockMvc.perform(get("/menus/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.success").value(false));
     }
 }
