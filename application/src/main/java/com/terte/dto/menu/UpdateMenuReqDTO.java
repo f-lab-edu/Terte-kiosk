@@ -1,5 +1,6 @@
 package com.terte.dto.menu;
 
+import com.terte.common.enums.MenuCategory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ public class UpdateMenuReqDTO {
     private String name;
     private String description;
     private int price;
-    private String category;
+    private MenuCategory category;
     private String image;
     private List<OptionDTO> options;
 }

@@ -1,5 +1,6 @@
 package com.terte.service.menu;
 
+import com.terte.common.enums.MenuCategory;
 import com.terte.dto.menu.CreateMenuReqDTO;
 import com.terte.dto.menu.MenuDetailResDTO;
 import com.terte.dto.menu.MenuResDTO;
@@ -14,6 +15,6 @@ public interface MenuService {
     Long updateMenu(UpdateMenuReqDTO updateMenuReqDTO);
     Long deleteMenu(Long id);
 
-    List<MenuResDTO> getAllMenus(String category);
+    List<MenuResDTO> getAllMenus(MenuCategory category);
     MenuDetailResDTO getMenuDetailById(Long id);
 }

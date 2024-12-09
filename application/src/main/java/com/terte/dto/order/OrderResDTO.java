@@ -1,7 +1,7 @@
 package com.terte.dto.order;
 
-import com.terte.common.OrderStatus;
-import com.terte.common.OrderType;
+import com.terte.common.enums.OrderStatus;
+import com.terte.common.enums.OrderType;
 import com.terte.dto.menu.MenuResDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

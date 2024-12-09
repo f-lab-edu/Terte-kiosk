@@ -1,5 +1,6 @@
 package com.terte.dto.menu;
 
+import com.terte.common.enums.MenuCategory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,6 @@ public class MenuResDTO {
     private Long id;
     private String name;
     private int price;
-    private String category;
+    private MenuCategory category;
     private String image;
 }

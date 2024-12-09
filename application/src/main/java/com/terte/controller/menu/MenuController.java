@@ -1,5 +1,6 @@
 package com.terte.controller.menu;
 
+import com.terte.common.enums.MenuCategory;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.menu.CreateMenuReqDTO;
@@ -25,7 +26,7 @@ public class MenuController {
      * 전체 메뉴 조회
      */
     @GetMapping
-    public ResponseEntity<ApiResDTO<List<MenuResDTO>>> getAllMenus(@RequestParam(required = false) String category) {
+    public ResponseEntity<ApiResDTO<List<MenuResDTO>>> getAllMenus(@RequestParam(required = false) MenuCategory category) {
         List<MenuResDTO> menus = menuService.getAllMenus(category);
         return ResponseEntity.ok(ApiResDTO.success(menus));
     }
@@ -54,11 +55,9 @@ public class MenuController {
      * PATCH /menus/{menuId}
      * 메뉴 수정
      */
-    @PatchMapping("/{menuId}")
+    @PatchMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateMenu(
-            @PathVariable Long menuId,
             @RequestBody UpdateMenuReqDTO updateMenuReqDTO) {
-        updateMenuReqDTO.setId(menuId); // ID 설정
         Long updatedMenuId = menuService.updateMenu(updateMenuReqDTO);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedMenuId).build()));
     }

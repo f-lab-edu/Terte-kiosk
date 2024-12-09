@@ -1,7 +1,7 @@
 package com.terte.dto.payment;
 
-import com.terte.common.PaymentMethod;
-import com.terte.common.PaymentStatus;
+import com.terte.common.enums.PaymentMethod;
+import com.terte.common.enums.PaymentStatus;
 import lombok.Getter;
 import lombok.Setter;
 

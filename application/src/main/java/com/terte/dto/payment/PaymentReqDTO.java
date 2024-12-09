@@ -1,7 +1,7 @@
 package com.terte.dto.payment;
 
-import com.terte.common.PaymentCreateType;
-import com.terte.common.PaymentMethod;
+import com.terte.common.enums.PaymentCreateType;
+import com.terte.common.enums.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
