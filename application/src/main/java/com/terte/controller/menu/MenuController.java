@@ -1,7 +1,7 @@
 package com.terte.controller.menu;
 
-import com.terte.dto.common.BaseResDTO;
-import com.terte.dto.common.UpdateAndDeleteResDTO;
+import com.terte.dto.common.ApiResDTO;
+import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.menu.CreateMenuReqDTO;
 import com.terte.dto.menu.MenuDetailResDTO;
 import com.terte.dto.menu.MenuResDTO;
@@ -25,9 +25,9 @@ public class MenuController {
      * 전체 메뉴 조회
      */
     @GetMapping
-    public ResponseEntity<List<MenuResDTO>> getAllMenus(@RequestParam(required = false) String category) {
+    public ResponseEntity<ApiResDTO<List<MenuResDTO>>> getAllMenus(@RequestParam(required = false) String category) {
         List<MenuResDTO> menus = menuService.getAllMenus(category);
-        return ResponseEntity.ok(menus);
+        return ResponseEntity.ok(ApiResDTO.success(menus));
     }
 
     /**
@@ -35,9 +35,9 @@ public class MenuController {
      * 특정 메뉴 상세 조회
      */
     @GetMapping("/{menuId}")
-    public ResponseEntity<MenuDetailResDTO> getMenuById(@PathVariable Long menuId) {
+    public ResponseEntity<ApiResDTO<MenuDetailResDTO>> getMenuById(@PathVariable Long menuId) {
         MenuDetailResDTO detailMenu = menuService.getMenuDetailById(menuId);
-        return ResponseEntity.ok(detailMenu);
+        return ResponseEntity.ok(ApiResDTO.success(detailMenu));
     }
 
     /**
@@ -45,9 +45,9 @@ public class MenuController {
      * 메뉴 생성
      */
     @PostMapping
-    public ResponseEntity<BaseResDTO> createMenu(@RequestBody CreateMenuReqDTO createMenuReqDTO) {
-        BaseResDTO createdMenuRes = menuService.createMenu(createMenuReqDTO);
-        return ResponseEntity.ok(createdMenuRes);
+    public ResponseEntity<ApiResDTO<CommonIdResDTO>> createMenu(@RequestBody CreateMenuReqDTO createMenuReqDTO) {
+        Long createdMenuId = menuService.createMenu(createMenuReqDTO);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdMenuId).build()));
     }
 
     /**
@@ -55,12 +55,12 @@ public class MenuController {
      * 메뉴 수정
      */
     @PatchMapping("/{menuId}")
-    public ResponseEntity<UpdateAndDeleteResDTO> updateMenu(
+    public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateMenu(
             @PathVariable Long menuId,
             @RequestBody UpdateMenuReqDTO updateMenuReqDTO) {
         updateMenuReqDTO.setId(menuId); // ID 설정
-        UpdateAndDeleteResDTO updatedMenuRes = menuService.updateMenu(updateMenuReqDTO);
-        return ResponseEntity.ok(updatedMenuRes);
+        Long updatedMenuId = menuService.updateMenu(updateMenuReqDTO);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedMenuId).build()));
     }
 
     /**
@@ -68,8 +68,8 @@ public class MenuController {
      * 메뉴 삭제
      */
     @DeleteMapping("/{menuId}")
-    public ResponseEntity<UpdateAndDeleteResDTO> deleteMenu(@PathVariable Long menuId) {
-        UpdateAndDeleteResDTO deletedMenuRes = menuService.deleteMenu(menuId);
-        return ResponseEntity.ok(deletedMenuRes);
+    public ResponseEntity<ApiResDTO<CommonIdResDTO>> deleteMenu(@PathVariable Long menuId) {
+        Long deletedId = menuService.deleteMenu(menuId);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(deletedId).build()));
     }
 }
