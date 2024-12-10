@@ -8,6 +8,7 @@ import com.terte.dto.menu.MenuDetailResDTO;
 import com.terte.dto.menu.MenuResDTO;
 import com.terte.dto.menu.UpdateMenuReqDTO;
 import com.terte.service.menu.MenuService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,18 +52,18 @@ public class MenuController {
      * 메뉴 생성
      */
     @PostMapping
-    public ResponseEntity<ApiResDTO<CommonIdResDTO>> createMenu(@RequestBody CreateMenuReqDTO createMenuReqDTO) {
+    public ResponseEntity<ApiResDTO<CommonIdResDTO>> createMenu(@RequestBody @Valid CreateMenuReqDTO createMenuReqDTO) {
         Long createdMenuId = menuService.createMenu(createMenuReqDTO);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdMenuId).build()));
     }
 
     /**
-     * PATCH /menus/{menuId}
+     * PATCH /menus
      * 메뉴 수정
      */
     @PatchMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateMenu(
-            @RequestBody UpdateMenuReqDTO updateMenuReqDTO) {
+            @RequestBody @Valid UpdateMenuReqDTO updateMenuReqDTO) {
         Long updatedMenuId = menuService.updateMenu(updateMenuReqDTO);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedMenuId).build()));
     }
@@ -74,6 +75,10 @@ public class MenuController {
     @DeleteMapping("/{menuId}")
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> deleteMenu(@PathVariable Long menuId) {
         Long deletedId = menuService.deleteMenu(menuId);
+        if(deletedId == null) {
+            //TODO: 예외를 던져서 API 응답을 처리하는 방법으로 변경 - 컨트롤러에서 예외를 던지는 것이 아니라, 서비스에서 예외를 던지도록 변경
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(deletedId).build()));
     }
 }

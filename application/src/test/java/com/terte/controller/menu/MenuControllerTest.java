@@ -2,9 +2,12 @@ package com.terte.controller.menu;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.common.enums.MenuCategory;
+import com.terte.dto.menu.CreateMenuReqDTO;
 import com.terte.dto.menu.MenuDetailResDTO;
 import com.terte.dto.menu.MenuResDTO;
+import com.terte.dto.menu.UpdateMenuReqDTO;
 import com.terte.service.menu.MenuService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -14,12 +17,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+
 import java.util.Collections;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @WebMvcTest(MenuController.class)
 class MenuControllerTest {
@@ -32,6 +38,11 @@ class MenuControllerTest {
 
     @MockBean
     private MenuService menuService;
+
+    @BeforeEach
+    void setUp() {
+        Mockito.reset(menuService);
+    }
 
     @Test
     @DisplayName("카테고리 없이 전체 메뉴를 조회하면 모든 메뉴가 반환된다")
@@ -146,4 +157,122 @@ class MenuControllerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.success").value(false));
     }
+
+    @Test
+    @DisplayName("메뉴가 성공적으로 생성되고 성공 후, 생성된 ID를 반환한다")
+    void testCreateMenuSuccess() throws Exception {
+        CreateMenuReqDTO createMenuReqDTO = CreateMenuReqDTO.builder()
+                .name("아메리카노")
+                .description("아메리카노 설명")
+                .price(5000)
+                .category(MenuCategory.COFFEE)
+                .image("americano.jpg")
+                .build();
+
+        Mockito.when(menuService.createMenu(any(CreateMenuReqDTO.class))).thenReturn(1L);
+
+        mockMvc.perform(post("/menus")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createMenuReqDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(1L));
+    }
+
+    @Test
+    @DisplayName("메뉴 생성 시 요청이 필수값이 누락된 경우 400 에러를 반환한다")
+    void testCreateMenuMissingRequiredField() throws Exception {
+        CreateMenuReqDTO createMenuReqDTO = CreateMenuReqDTO.builder()
+                .name("아메리카노")
+                .description("아메리카노 설명")
+                .build();
+
+        mockMvc.perform(post("/menus")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createMenuReqDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("메뉴 생성 시 서비스에서 예외 발생 시 500 Internal Server Error를 반환한다")
+    void testCreateMenuServiceException() throws Exception {
+        CreateMenuReqDTO createMenuReqDTO = CreateMenuReqDTO.builder()
+                .name("아메리카노")
+                .description("아메리카노 설명")
+                .price(5000)
+                .category(MenuCategory.COFFEE)
+                .image("americano.jpg")
+                .build();
+
+        Mockito.when(menuService.createMenu(any(CreateMenuReqDTO.class)))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        mockMvc.perform(post("/menus")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createMenuReqDTO)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    @DisplayName("메뉴 수정 시 성공하면 200 OK와 수정된 메뉴 ID를 반환한다")
+    void testUpdateMenuSuccess() throws Exception {
+        Long targetId = 1L;
+        UpdateMenuReqDTO updateMenuReqDTO = UpdateMenuReqDTO.builder()
+                .id(targetId)
+                .price(9000)
+                .image("image url")
+                .build();
+        Mockito.when(menuService.updateMenu(any(UpdateMenuReqDTO.class)))
+                .thenReturn(updateMenuReqDTO.getId());
+        mockMvc.perform(patch("/menus")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateMenuReqDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(targetId));
+    }
+
+    @Test
+    @DisplayName("메뉴 수정 시 서비스에서 예외 발생 시 500 Internal Server Error를 반환한다")
+    void testUpdateMenuServiceException() throws Exception {
+        Mockito.when(menuService.updateMenu(any()))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        mockMvc.perform(patch("/menus")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(UpdateMenuReqDTO.builder().id(1L).build())))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    @DisplayName("메뉴 삭제 시 성공하면 200 OK와 삭제된 메뉴 ID를 반환한다")
+    void testDeleteMenuSuccess() throws Exception {
+        Mockito.when(menuService.deleteMenu(1L))
+                .thenReturn(1L);
+
+        mockMvc.perform(delete("/menus/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(1L));
+    }
+
+    @Test
+    @DisplayName("메뉴 삭제 시 존재하지 않는 메뉴 ID로 요청 시 404 Not Found를 반환한다")
+    void testDeleteMenuNotFound() throws Exception {
+        Mockito.when(menuService.deleteMenu(999L))
+                .thenReturn(null);
+
+        mockMvc.perform(delete("/menus/999")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("메뉴 삭제 시 유효하지 않은 ID로 요청 시 400 Bad Request를 반환한다")
+    void testDeleteMenuInvalidId() throws Exception {
+        mockMvc.perform(delete("/menus/invalid-id")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
 }
