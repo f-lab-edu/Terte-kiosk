@@ -3,10 +3,7 @@ package com.terte.controller.menu;
 import com.terte.common.enums.MenuCategory;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
-import com.terte.dto.menu.CreateMenuReqDTO;
-import com.terte.dto.menu.MenuDetailResDTO;
-import com.terte.dto.menu.MenuResDTO;
-import com.terte.dto.menu.UpdateMenuReqDTO;
+import com.terte.dto.menu.*;
 import com.terte.service.menu.MenuService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -19,7 +16,6 @@ import java.util.List;
 @RequestMapping("/menus")
 @AllArgsConstructor
 public class MenuController {
-    private final MenuService menuService;
 
 
     /**
@@ -27,8 +23,29 @@ public class MenuController {
      * 전체 메뉴 조회
      */
     @GetMapping
-    public ResponseEntity<ApiResDTO<List<MenuResDTO>>> getAllMenus(@RequestParam(required = false) MenuCategory category) {
-        List<MenuResDTO> menus = menuService.getAllMenus(category);
+    public ResponseEntity<ApiResDTO<List<MenuResDTO>>> getAllMenus(@RequestParam(required = false) Long categoryId) {
+        MenuResDTO menu1 = MenuResDTO.builder()
+                .id(1L)
+                .name("Americano")
+                .price(5000)
+                .categoryId(1L)
+                .categoryName("COFFEE")
+                .image("https://image.com")
+                .build();
+        MenuResDTO menu2 = MenuResDTO.builder()
+                .id(2L)
+                .name("Latte")
+                .price(6000)
+                .categoryId(1L)
+                .categoryName("COFFEE")
+                .image("https://image.com")
+                .build();
+        List<MenuResDTO> menus = List.of(menu1, menu2);
+        if(categoryId != null) {
+            menus = menus.stream()
+                    .filter(menu -> menu.getCategoryId().equals(categoryId))
+                    .toList();
+        }
         return ResponseEntity.ok(ApiResDTO.success(menus));
     }
 
@@ -38,10 +55,18 @@ public class MenuController {
      */
     @GetMapping("/{menuId}")
     public ResponseEntity<ApiResDTO<MenuDetailResDTO>> getMenuById(@PathVariable Long menuId) {
-        MenuDetailResDTO detailMenu = menuService.getMenuDetailById(menuId);
-        if (detailMenu == null) {
+        MenuDetailResDTO detailMenu = MenuDetailResDTO.builder()
+                .id(1L)
+                .name("Americano")
+                .description("아메리카노")
+                .price(5000)
+                .categoryId(1L)
+                .categoryName("COFFEE")
+                .image("https://image.com")
+                .options(List.of())
+                .build();
+        if (menuId != 1L) {
             //TODO: 예외를 던져서 API 응답을 처리하는 방법으로 변경 - 컨트롤러에서 예외를 던지는 것이 아니라, 서비스에서 예외를 던지도록 변경
-            //throw new MenuNotFoundException();
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(ApiResDTO.success(detailMenu));
@@ -53,7 +78,8 @@ public class MenuController {
      */
     @PostMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createMenu(@RequestBody @Valid CreateMenuReqDTO createMenuReqDTO) {
-        Long createdMenuId = menuService.createMenu(createMenuReqDTO);
+        createMenuReqDTO.toString();
+        Long createdMenuId = 2L;
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdMenuId).build()));
     }
 
@@ -64,7 +90,7 @@ public class MenuController {
     @PatchMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateMenu(
             @RequestBody @Valid UpdateMenuReqDTO updateMenuReqDTO) {
-        Long updatedMenuId = menuService.updateMenu(updateMenuReqDTO);
+        Long updatedMenuId = updateMenuReqDTO.getId();
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedMenuId).build()));
     }
 
@@ -74,8 +100,8 @@ public class MenuController {
      */
     @DeleteMapping("/{menuId}")
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> deleteMenu(@PathVariable Long menuId) {
-        Long deletedId = menuService.deleteMenu(menuId);
-        if(deletedId == null) {
+        Long deletedId = menuId;
+        if(deletedId != 1L) {
             //TODO: 예외를 던져서 API 응답을 처리하는 방법으로 변경 - 컨트롤러에서 예외를 던지는 것이 아니라, 서비스에서 예외를 던지도록 변경
             return ResponseEntity.notFound().build();
         }

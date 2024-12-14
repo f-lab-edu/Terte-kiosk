@@ -1,10 +1,7 @@
 package com.terte.dto.menu;
 
 import com.terte.common.enums.MenuCategory;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -12,12 +9,14 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class MenuDetailResDTO {
     private Long id;
     private String name;
     private String description;
     private int price;
-    private MenuCategory category;
+    private Long categoryId;
+    private String categoryName;
     private String image;
     private List<OptionDTO> options; // 메뉴에 종속된 옵션 리스트
 }

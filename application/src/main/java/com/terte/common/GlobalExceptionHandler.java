@@ -29,4 +29,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResDTO<String>> handleValidationException(MethodArgumentNotValidException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResDTO.error("Validation error: " + ex.getMessage()));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResDTO<String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResDTO.error(ex.getMessage()));
+    }
 }

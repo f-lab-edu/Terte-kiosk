@@ -2,15 +2,15 @@ package com.terte.dto.payment;
 
 import com.terte.common.enums.PaymentMethod;
 import com.terte.common.enums.PaymentStatus;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
-@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PaymentResDTO {
     private Long id;
     private Long orderId;
     private PaymentMethod paymentMethod;
-    private Integer amount;
     private PaymentStatus status;
 }

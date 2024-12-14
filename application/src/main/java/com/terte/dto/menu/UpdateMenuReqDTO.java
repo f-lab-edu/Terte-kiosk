@@ -14,7 +14,7 @@ public class UpdateMenuReqDTO {
     private String name;
     private String description;
     private int price;
-    private MenuCategory category;
+    private Long categoryId;
     private String image;
     private List<OptionDTO> options;
 }

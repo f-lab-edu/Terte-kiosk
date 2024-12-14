@@ -9,7 +9,6 @@ import lombok.*;
 import java.util.List;
 
 @Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -19,8 +18,8 @@ public class CreateMenuReqDTO {
     private String description;
     @Min(0)
     private int price;
-    @NotNull
-    private MenuCategory category;
+    @Min(1)
+    private Long categoryId;
     private String image;
     private List<OptionDTO> options;
 }

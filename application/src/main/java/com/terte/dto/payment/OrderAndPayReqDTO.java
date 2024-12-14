@@ -1,15 +1,13 @@
 package com.terte.dto.payment;
 
 import com.terte.dto.order.CreateOrderReqDTO;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder
 public class OrderAndPayReqDTO extends PaymentReqDTO{
     private CreateOrderReqDTO order;
 }
