@@ -1,11 +1,14 @@
 package com.terte.controller.order;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
 import com.terte.common.enums.OrderStatus;
 import com.terte.common.enums.OrderType;
+import com.terte.dto.menu.CategoryResDTO;
 import com.terte.dto.menu.MenuResDTO;
 import com.terte.dto.order.CreateOrderReqDTO;
+import com.terte.dto.order.OrderDetailResDTO;
 import com.terte.dto.order.UpdateOrderReqDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +18,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -52,6 +58,34 @@ class OrderControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.tableNumber").exists())
                 .andExpect(jsonPath("$.data.phoneNumber").exists())
                 .andExpect(jsonPath("$.data.status").value("ORDERED"));
+    }
+
+    @Test
+    @DisplayName("주문 상세 조회 시 정해진 필드 외의 값은 반환되지 않는다")
+    void testGetOrderDetailByIdWithSpecificFields() throws Exception {
+        String response = mockMvc.perform(get("/orders/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        TypeReference<Map<String, Object>> typeReference = new TypeReference<Map<String,Object>>() {};
+        Map<String, Object> responseMap = objectMapper.readValue(response, typeReference);
+        Object data = responseMap.get("data");
+
+        assert data instanceof Map;
+        Map<String, Object> dataMap = (Map<String,Object>) data;
+
+        List<String> responseDateKeys = dataMap.keySet().stream().collect(Collectors.toList());
+
+        List<String> orderDetailResDTOFieldNames = Arrays.stream(OrderDetailResDTO.class.getDeclaredFields())
+                .map(java.lang.reflect.Field::getName)
+                .collect(Collectors.toList());
+
+        responseDateKeys.forEach(key -> {
+            assert orderDetailResDTOFieldNames.contains(key);
+        });
     }
 
     @Test

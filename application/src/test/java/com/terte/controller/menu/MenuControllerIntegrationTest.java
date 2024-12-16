@@ -1,8 +1,10 @@
 package com.terte.controller.menu;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
 import com.terte.dto.menu.CreateMenuReqDTO;
+import com.terte.dto.menu.MenuDetailResDTO;
 import com.terte.dto.menu.UpdateMenuReqDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,7 +14,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -45,13 +50,17 @@ class MenuControllerIntegrationTest {
     @DisplayName("특정 카테고리를 지정하여 요청하면 해당 카테고리의 메뉴만 반환된다")
     void testGetAllMenusWithCategory() throws Exception {
 
-        mockMvc.perform(get("/menus")
+        String response = mockMvc.perform(get("/menus")
                         .param("categoryId", "1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].categoryName").value("COFFEE"));
+                .andExpect(jsonPath("$.data[0].categoryName").value("COFFEE"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
     }
+
 
     @Test
     @DisplayName("존재하는 메뉴 ID로 요청 시 메뉴 상세 정보를 반환한다")
@@ -72,6 +81,35 @@ class MenuControllerIntegrationTest {
         mockMvc.perform(get("/menus/999")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("메뉴 상세 조회 시 정해진 필드 외의 값은 반환되지 않는다")
+    void testGetMenuByIdWithSpecificFields() throws Exception {
+        String response = mockMvc.perform(get("/menus/1")
+                        .param("fields", "id,name")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        TypeReference<Map<String, Object>> typeReference = new TypeReference<Map<String,Object>>() {};
+        Map<String, Object> responseMap = objectMapper.readValue(response, typeReference);
+        Object data = responseMap.get("data");
+
+        assert data instanceof Map;
+        Map<String, Object> dataMap = (Map<String, Object>) data;
+
+        List<String> responseDateKeys = dataMap.keySet().stream().collect(Collectors.toList());
+
+        List<String> MenuDetailResDTOFieldNames = Arrays.stream(MenuDetailResDTO.class.getDeclaredFields())
+                .map(java.lang.reflect.Field::getName)
+                .collect(Collectors.toList());
+
+        responseDateKeys.forEach(key -> {
+            assert MenuDetailResDTOFieldNames.contains(key);
+        });
     }
 
     @Test
