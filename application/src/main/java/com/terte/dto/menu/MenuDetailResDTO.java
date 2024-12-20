@@ -6,10 +6,8 @@ import lombok.*;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class MenuDetailResDTO {
     private Long id;
     private String name;

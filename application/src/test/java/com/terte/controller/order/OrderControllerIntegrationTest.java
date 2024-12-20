@@ -99,14 +99,13 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 생성 시 성공적으로 생성되고 생성된 ID를 반환한다")
     void testCreateOrderSuccess() throws Exception {
-        CreateOrderReqDTO createOrderReqDTO = CreateOrderReqDTO.builder()
-                .orderType(OrderType.EATIN)
-                .tableNumber(1)
-                .phoneNumber("010-1234-5678")
-                .menuList(List.of(
-                        MenuResDTO.builder().name("Americano").price(5000).build()
-                ))
-                .build();
+        CreateOrderReqDTO createOrderReqDTO = new CreateOrderReqDTO(
+                List.of(new MenuResDTO(1L, "Americano", 1000, 1L, "COFFEE", "image")),
+                OrderType.EATIN,
+                "010-1234-5678",
+                1,
+                10000
+        );
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createOrderReqDTO)))
@@ -117,10 +116,7 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 수정 시 성공하면 200 OK와 수정된 주문 ID를 반환한다")
     void testUpdateOrderSuccess() throws Exception {
-        UpdateOrderReqDTO updateOrderReqDTO = UpdateOrderReqDTO.builder()
-                .id(1L)
-                .status(OrderStatus.CANCELED)
-                .build();
+        UpdateOrderReqDTO updateOrderReqDTO = UpdateOrderReqDTO.builder().id(1L).orderType(OrderType.DELIVERY).build();
         mockMvc.perform(patch("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateOrderReqDTO)))

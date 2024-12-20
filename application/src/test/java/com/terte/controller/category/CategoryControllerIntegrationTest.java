@@ -74,9 +74,7 @@ class CategoryControllerIntegrationTest {
     @Test
     @DisplayName("카테고리가 성공적으로 생성되고 성공 후, 생성된 ID를 반환한다")
     void testCreateCategorySuccess() throws Exception {
-        CreateCategoryReqDTO createCategoryReqDTO = CreateCategoryReqDTO.builder()
-                .name("New Category")
-                .build();
+        CreateCategoryReqDTO createCategoryReqDTO = new CreateCategoryReqDTO("New Category", "New Category Description");
         mockMvc.perform(post("/categories")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createCategoryReqDTO)))
@@ -88,8 +86,7 @@ class CategoryControllerIntegrationTest {
     @Test
     @DisplayName("카테고리 생성 시 요청이 필수값이 누락된 경우 400 에러를 반환한다")
     void testCreateCategoryMissingRequiredField() throws Exception {
-        CreateCategoryReqDTO createCategoryReqDTO = CreateCategoryReqDTO.builder()
-                .build();
+        CreateCategoryReqDTO createCategoryReqDTO = new CreateCategoryReqDTO();
 
         mockMvc.perform(post("/categories")
                         .contentType(MediaType.APPLICATION_JSON)

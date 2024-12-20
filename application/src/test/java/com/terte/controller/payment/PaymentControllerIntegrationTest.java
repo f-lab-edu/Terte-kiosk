@@ -8,8 +8,7 @@ import com.terte.common.enums.PaymentMethod;
 import com.terte.common.enums.PaymentStatus;
 import com.terte.dto.menu.MenuResDTO;
 import com.terte.dto.order.CreateOrderReqDTO;
-import com.terte.dto.payment.OrderAndPayReqDTO;
-import com.terte.dto.payment.PayExistingOrderReqDTO;
+import com.terte.dto.payment.PaymentReqDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,15 +51,15 @@ class PaymentControllerIntegrationTest {
         CreateOrderReqDTO order = CreateOrderReqDTO.builder()
                 .menuList(
                         List.of(
-                                MenuResDTO.builder().id(1L).build(),
-                                MenuResDTO.builder().id(2L).build()
+                                new MenuResDTO(1L, "menu1", 10000, 1L, "category1", "image1"),
+                                new MenuResDTO(2L, "menu2", 20000, 2L, "category2", "image2")
                         )
                 )
                 .phoneNumber("010-1234-5678")
                 .tableNumber(1)
                 .orderType(OrderType.EATIN)
                 .build();
-        OrderAndPayReqDTO orderAndPayReqDTO = OrderAndPayReqDTO.builder()
+        PaymentReqDTO orderAndPayReqDTO = PaymentReqDTO.builder()
                 .paymentCreateType(PaymentCreateType.ORDER_AND_PAY)
                 .order(order)
                 .paymentMethod(PaymentMethod.CASH)
@@ -76,7 +75,7 @@ class PaymentControllerIntegrationTest {
     @Test
     @DisplayName("결제 생성 시 성공하면 200 OK와 생성된 결제 ID를 반환한다 - 기존 주문 결제")
     void testCreatePaymentPayExistingOrderSuccess() throws Exception {
-        PayExistingOrderReqDTO payExistingOrderReqDTO = PayExistingOrderReqDTO.builder()
+        PaymentReqDTO paymentReqDTO = PaymentReqDTO.builder()
                 .paymentCreateType(PaymentCreateType.PAY_EXISTING_ORDER)
                 .orderId(1L)
                 .paymentMethod(PaymentMethod.CASH)
@@ -84,7 +83,7 @@ class PaymentControllerIntegrationTest {
 
         mockMvc.perform(post("/payments")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(payExistingOrderReqDTO)))
+                        .content(objectMapper.writeValueAsString(paymentReqDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1L));
     }

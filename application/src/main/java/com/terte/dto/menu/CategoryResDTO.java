@@ -6,9 +6,13 @@ import lombok.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class CategoryResDTO {
     private Long id;
     private String name;
     private String description;
+
+    public CategoryResDTO(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }

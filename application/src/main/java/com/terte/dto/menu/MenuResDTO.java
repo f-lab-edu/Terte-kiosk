@@ -4,10 +4,8 @@ import com.terte.common.enums.MenuCategory;
 import lombok.*;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class MenuResDTO {
     private Long id;
     private String name;

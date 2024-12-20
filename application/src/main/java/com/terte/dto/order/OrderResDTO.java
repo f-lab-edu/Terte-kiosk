@@ -10,7 +10,6 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class OrderResDTO {
     private Long id;
     private List<MenuResDTO> menuList;

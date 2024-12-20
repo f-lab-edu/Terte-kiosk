@@ -4,7 +4,6 @@ import com.terte.common.enums.MenuCategory;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.menu.*;
-import com.terte.service.menu.MenuService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,22 +23,8 @@ public class MenuController {
      */
     @GetMapping
     public ResponseEntity<ApiResDTO<List<MenuResDTO>>> getAllMenus(@RequestParam(required = false) Long categoryId) {
-        MenuResDTO menu1 = MenuResDTO.builder()
-                .id(1L)
-                .name("Americano")
-                .price(5000)
-                .categoryId(1L)
-                .categoryName("COFFEE")
-                .image("https://image.com")
-                .build();
-        MenuResDTO menu2 = MenuResDTO.builder()
-                .id(2L)
-                .name("Latte")
-                .price(6000)
-                .categoryId(1L)
-                .categoryName("COFFEE")
-                .image("https://image.com")
-                .build();
+        MenuResDTO menu1 = new MenuResDTO(1L, "Americano", 5000, 1L, "COFFEE", "https://image.com");
+        MenuResDTO menu2 = new MenuResDTO(2L, "Latte", 6000, 1L, "COFFEE", "https://image.com");
         List<MenuResDTO> menus = List.of(menu1, menu2);
         if(categoryId != null) {
             menus = menus.stream()
@@ -55,16 +40,7 @@ public class MenuController {
      */
     @GetMapping("/{menuId}")
     public ResponseEntity<ApiResDTO<MenuDetailResDTO>> getMenuById(@PathVariable Long menuId) {
-        MenuDetailResDTO detailMenu = MenuDetailResDTO.builder()
-                .id(1L)
-                .name("Americano")
-                .description("아메리카노")
-                .price(5000)
-                .categoryId(1L)
-                .categoryName("COFFEE")
-                .image("https://image.com")
-                .options(List.of())
-                .build();
+        MenuDetailResDTO detailMenu = new MenuDetailResDTO(1L, "Americano","description", 5000, 1L, "COFFEE", "https://image.com", List.of());
         if (menuId != 1L) {
             //TODO: 예외를 던져서 API 응답을 처리하는 방법으로 변경 - 컨트롤러에서 예외를 던지는 것이 아니라, 서비스에서 예외를 던지도록 변경
             return ResponseEntity.notFound().build();

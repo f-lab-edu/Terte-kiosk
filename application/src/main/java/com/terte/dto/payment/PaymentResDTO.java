@@ -7,7 +7,6 @@ import lombok.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class PaymentResDTO {
     private Long id;
     private Long orderId;

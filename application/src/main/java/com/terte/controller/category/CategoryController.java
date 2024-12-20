@@ -21,14 +21,8 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<ApiResDTO<List<CategoryResDTO>>> getCategoryList() {
         //return categoryService.getCategoryList();
-        CategoryResDTO category1 = CategoryResDTO.builder()
-                .id(1L)
-                .name("COFFEE")
-                .build();
-        CategoryResDTO category2 = CategoryResDTO.builder()
-                .id(2L)
-                .name("BEVERAGE")
-                .build();
+        CategoryResDTO category1 = new CategoryResDTO(1L, "COFFEE");
+        CategoryResDTO category2 = new CategoryResDTO(2L, "TEA");
         return ResponseEntity.ok(ApiResDTO.success(List.of(category1, category2)));
     }
 

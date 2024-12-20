@@ -1,14 +1,13 @@
 package com.terte.controller.order;
 
 import com.terte.common.enums.OrderStatus;
+import com.terte.common.enums.OrderType;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
-import com.terte.dto.menu.UpdateMenuReqDTO;
 import com.terte.dto.order.CreateOrderReqDTO;
 import com.terte.dto.order.OrderDetailResDTO;
 import com.terte.dto.order.OrderResDTO;
 import com.terte.dto.order.UpdateOrderReqDTO;
-import com.terte.service.order.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,16 +29,8 @@ public class OrderController {
     public ResponseEntity<ApiResDTO<List<OrderResDTO>>> getAllOrders(@RequestParam(required = false) String status) {
         //List<OrderResDTO> orders = orderService.getAllOrders(status);
         List<OrderResDTO> orders = List.of(
-                OrderResDTO.builder()
-                        .id(1L)
-                        .status(OrderStatus.ORDERED)
-                        .totalPrice(11000)
-                        .build(),
-                OrderResDTO.builder()
-                        .id(2L)
-                        .status(OrderStatus.ORDERED)
-                        .totalPrice(12000)
-                        .build()
+                new OrderResDTO(1L, List.of(), OrderType.EATIN, OrderStatus.ORDERED, "2024-12-13 12:00:00", 10000),
+                new OrderResDTO(2L, List.of(), OrderType.TAKEOUT, OrderStatus.ORDERED, "2024-12-13 12:00:00", 10000)
         );
         if(status != null) {
             orders = orders.stream()
@@ -59,14 +50,7 @@ public class OrderController {
         if (orderId != 1L) {
             return ResponseEntity.notFound().build();
         }
-        OrderDetailResDTO orderDetail = OrderDetailResDTO.builder()
-                .orderId(orderId)
-                .orderType(null)
-                .status(OrderStatus.ORDERED)
-                .orderTime("2024-12-13 12:00:00")
-                .phoneNumber("010-1234-5678")
-                .tableNumber(1)
-                .build();
+        OrderDetailResDTO orderDetail = new OrderDetailResDTO(1L, List.of(), OrderType.EATIN, OrderStatus.ORDERED, "2024-12-13 12:00:00", "010-1234-5678", 1);
         return ResponseEntity.ok(ApiResDTO.success(orderDetail));
 
     }

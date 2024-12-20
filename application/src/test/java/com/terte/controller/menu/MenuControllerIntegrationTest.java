@@ -72,7 +72,7 @@ class MenuControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.id").value(1L))
                 .andExpect(jsonPath("$.data.name").value("Americano"))
                 .andExpect(jsonPath("$.data.categoryName").value("COFFEE"))
-                .andExpect(jsonPath("$.data.description").value("아메리카노"));
+                .andExpect(jsonPath("$.data.description").value("description"));
     }
 
     @Test
@@ -124,13 +124,7 @@ class MenuControllerIntegrationTest {
     @Test
     @DisplayName("메뉴가 성공적으로 생성되고 성공 후, 생성된 ID를 반환한다")
     void testCreateMenuSuccess() throws Exception {
-        CreateMenuReqDTO createMenuReqDTO = CreateMenuReqDTO.builder()
-                .name("모과차")
-                .description("모과차 설명")
-                .price(5000)
-                .categoryId(3L)
-                .image("image.jpg")
-                .build();
+        CreateMenuReqDTO createMenuReqDTO = new CreateMenuReqDTO("New Menu", "New Menu Description", 1000, 1L, "image.jpg", null);
         mockMvc.perform(post("/menus")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createMenuReqDTO)))
@@ -141,9 +135,7 @@ class MenuControllerIntegrationTest {
     @Test
     @DisplayName("메뉴 생성 시 요청이 필수값이 누락된 경우 400 에러를 반환한다")
     void testCreateMenuMissingRequiredField() throws Exception {
-        CreateMenuReqDTO createMenuReqDTO = CreateMenuReqDTO.builder()
-                .description("아메리카노 설명")
-                .build();
+        CreateMenuReqDTO createMenuReqDTO = new CreateMenuReqDTO();
 
         mockMvc.perform(post("/menus")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -156,11 +148,7 @@ class MenuControllerIntegrationTest {
     @DisplayName("메뉴 수정 시 성공하면 200 OK와 수정된 메뉴 ID를 반환한다")
     void testUpdateMenuSuccess() throws Exception {
         Long targetId = 1L;
-        UpdateMenuReqDTO updateMenuReqDTO = UpdateMenuReqDTO.builder()
-                .id(targetId)
-                .price(9000)
-                .image("image url")
-                .build();
+        UpdateMenuReqDTO updateMenuReqDTO = new UpdateMenuReqDTO(targetId, "Updated Menu", "Updated Menu Description", 2000, 1L, "updated-image.jpg", null);
 
         mockMvc.perform(patch("/menus")
                         .contentType(MediaType.APPLICATION_JSON)
