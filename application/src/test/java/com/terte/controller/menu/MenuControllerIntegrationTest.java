@@ -6,8 +6,7 @@ import com.terte.TerteMainApplication;
 import com.terte.dto.menu.CreateMenuReqDTO;
 import com.terte.dto.menu.MenuDetailResDTO;
 import com.terte.dto.menu.UpdateMenuReqDTO;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class MenuControllerIntegrationTest {
 
     @Autowired
@@ -42,8 +42,8 @@ class MenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].name").value("Americano"))
-                .andExpect(jsonPath("$.data[1].name").value("Latte"));
+                .andExpect(jsonPath("$.data[0].name").value("아메리카노"))
+                .andExpect(jsonPath("$.data[1].name").value("카페라떼"));
     }
 
     @Test
@@ -51,11 +51,11 @@ class MenuControllerIntegrationTest {
     void testGetAllMenusWithCategory() throws Exception {
 
         String response = mockMvc.perform(get("/menus")
-                        .param("categoryId", "1")
+                        .param("categoryId", "101")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].categoryName").value("COFFEE"))
+                .andExpect(jsonPath("$.data[0].categoryName").value("음료"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -70,9 +70,9 @@ class MenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1L))
-                .andExpect(jsonPath("$.data.name").value("Americano"))
-                .andExpect(jsonPath("$.data.categoryName").value("COFFEE"))
-                .andExpect(jsonPath("$.data.description").value("description"));
+                .andExpect(jsonPath("$.data.name").value("아메리카노"))
+                .andExpect(jsonPath("$.data.categoryName").value("음료"))
+                .andExpect(jsonPath("$.data.description").value("커피"));
     }
 
     @Test
@@ -123,13 +123,14 @@ class MenuControllerIntegrationTest {
 
     @Test
     @DisplayName("메뉴가 성공적으로 생성되고 성공 후, 생성된 ID를 반환한다")
+    @Order(1)
     void testCreateMenuSuccess() throws Exception {
         CreateMenuReqDTO createMenuReqDTO = new CreateMenuReqDTO("New Menu", "New Menu Description", 1000, 1L, "image.jpg", null);
         mockMvc.perform(post("/menus")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createMenuReqDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(2L));
+                .andExpect(jsonPath("$.data.id").value(4L));
     }
 
     @Test
@@ -146,8 +147,9 @@ class MenuControllerIntegrationTest {
 
     @Test
     @DisplayName("메뉴 수정 시 성공하면 200 OK와 수정된 메뉴 ID를 반환한다")
+    @Order(2)
     void testUpdateMenuSuccess() throws Exception {
-        Long targetId = 1L;
+        Long targetId = 4L;
         UpdateMenuReqDTO updateMenuReqDTO = new UpdateMenuReqDTO(targetId, "Updated Menu", "Updated Menu Description", 2000, 1L, "updated-image.jpg", null);
 
         mockMvc.perform(patch("/menus")
@@ -160,11 +162,12 @@ class MenuControllerIntegrationTest {
 
     @Test
     @DisplayName("메뉴 삭제 시 성공하면 200 OK와 삭제된 메뉴 ID를 반환한다")
+    @Order(3)
     void testDeleteMenuSuccess() throws Exception {
-        mockMvc.perform(delete("/menus/1")
+        mockMvc.perform(delete("/menus/4")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L));
+                .andExpect(jsonPath("$.data.id").value(4L));
     }
 
     @Test
