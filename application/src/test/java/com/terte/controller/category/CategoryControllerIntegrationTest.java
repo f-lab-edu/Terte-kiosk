@@ -7,11 +7,11 @@ import com.terte.dto.menu.CategoryResDTO;
 import com.terte.dto.menu.CreateCategoryReqDTO;
 import com.terte.dto.menu.MenuDetailResDTO;
 import com.terte.dto.menu.UpdateCategoryReqDTO;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CategoryControllerIntegrationTest {
 
     @Autowired
@@ -34,14 +35,16 @@ class CategoryControllerIntegrationTest {
     @Autowired
     ObjectMapper objectMapper;
 
+
+
     @Test
     @DisplayName("카테고리 조회 시 모든 카테고리가 반환된다")
     void testGetAllCategories() throws Exception {
         mockMvc.perform(get("/categories")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].name").value("COFFEE"));
+                .andExpect(jsonPath("$.data[0].id").value(101L))
+                .andExpect(jsonPath("$.data[0].name").value("음료"));
     }
 
     @Test
@@ -73,6 +76,7 @@ class CategoryControllerIntegrationTest {
     }
     @Test
     @DisplayName("카테고리가 성공적으로 생성되고 성공 후, 생성된 ID를 반환한다")
+    @Order(1)
     void testCreateCategorySuccess() throws Exception {
         CreateCategoryReqDTO createCategoryReqDTO = new CreateCategoryReqDTO("New Category", "New Category Description");
         mockMvc.perform(post("/categories")
@@ -96,8 +100,9 @@ class CategoryControllerIntegrationTest {
 
     @Test
     @DisplayName("카테고리 수정 시 성공하면 200 OK와 수정된 카테고리 ID를 반환한다")
+    @Order(2)
     void testUpdateCategorySuccess() throws Exception {
-        Long targetId = 1L;
+        Long targetId = 3L;
         UpdateCategoryReqDTO updateCategoryReqDTO = UpdateCategoryReqDTO.builder()
                 .id(targetId)
                 .name("Updated Category")
@@ -107,7 +112,7 @@ class CategoryControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateCategoryReqDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L));
+                .andExpect(jsonPath("$.data.id").value(targetId));
     }
 
     @Test
@@ -126,11 +131,12 @@ class CategoryControllerIntegrationTest {
 
     @Test
     @DisplayName("카테고리 삭제 시 성공하면 200 OK와 삭제된 카테고리 ID를 반환한다")
+    @Order(3)
     void testDeleteCategorySuccess() throws Exception {
-        mockMvc.perform(delete("/categories/1")
+        mockMvc.perform(delete("/categories/3")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L));
+                .andExpect(jsonPath("$.data.id").value(3));
     }
 
     @Test

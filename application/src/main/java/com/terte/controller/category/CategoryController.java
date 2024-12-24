@@ -5,15 +5,23 @@ import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.menu.CategoryResDTO;
 import com.terte.dto.menu.CreateCategoryReqDTO;
 import com.terte.dto.menu.UpdateCategoryReqDTO;
+import com.terte.entity.category.Category;
+import com.terte.service.category.CategoryService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-@RestController()
+@RestController
+@RequiredArgsConstructor
 @RequestMapping("/categories")
 public class CategoryController {
+    private final CategoryService categoryService;
+
     /**
      * GET /categories
      *  카테고리 조회
@@ -21,9 +29,9 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<ApiResDTO<List<CategoryResDTO>>> getCategoryList() {
         //return categoryService.getCategoryList();
-        CategoryResDTO category1 = new CategoryResDTO(1L, "COFFEE");
-        CategoryResDTO category2 = new CategoryResDTO(2L, "TEA");
-        return ResponseEntity.ok(ApiResDTO.success(List.of(category1, category2)));
+        List<Category> categories = categoryService.getAllCategories(1L);
+        List<CategoryResDTO> CategoryResDTOList = categories.stream().map(Category::toCategoryResDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResDTO.success(CategoryResDTOList));
     }
 
     /**
@@ -33,7 +41,9 @@ public class CategoryController {
      */
     @PostMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createCategory(@RequestBody @Valid CreateCategoryReqDTO categoryReqDTO) {
-        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(3L).build()));
+        Category category = new Category(null, categoryReqDTO.getName(), 1L);
+        Category createdCategory = categoryService.createCategory(category);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdCategory.getId()).build()));
     }
 
     /**
@@ -43,10 +53,9 @@ public class CategoryController {
      */
     @PatchMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateCategory(@RequestBody UpdateCategoryReqDTO categoryReqDTO) {
-        if(categoryReqDTO.getId() != 1L) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(categoryReqDTO.getId()).build()));
+        Category category = new Category(categoryReqDTO.getId(), categoryReqDTO.getName(), 1L);
+        Category updatedCategory = categoryService.updateCategory(category);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedCategory.getId()).build()));
     }
 
     /**
@@ -56,10 +65,7 @@ public class CategoryController {
      */
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> deleteCategory(@PathVariable Long categoryId) {
-        //categoryService.deleteCategory(categoryId);
-        if(categoryId != 1L) {
-            return ResponseEntity.notFound().build();
-        }
+        categoryService.deleteCategory(categoryId);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(categoryId).build()));
     }
 }

@@ -4,17 +4,28 @@ import com.terte.common.enums.MenuCategory;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.menu.*;
+import com.terte.entity.category.Category;
+import com.terte.entity.menu.Choice;
+import com.terte.entity.menu.Menu;
+import com.terte.entity.menu.Option;
+import com.terte.service.category.CategoryService;
+import com.terte.service.menu.MenuService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/menus")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MenuController {
+
+    private final MenuService menuService;
+    private final CategoryService categoryService;
 
 
     /**
@@ -23,15 +34,10 @@ public class MenuController {
      */
     @GetMapping
     public ResponseEntity<ApiResDTO<List<MenuResDTO>>> getAllMenus(@RequestParam(required = false) Long categoryId) {
-        MenuResDTO menu1 = new MenuResDTO(1L, "Americano", 5000, 1L, "COFFEE", "https://image.com");
-        MenuResDTO menu2 = new MenuResDTO(2L, "Latte", 6000, 1L, "COFFEE", "https://image.com");
-        List<MenuResDTO> menus = List.of(menu1, menu2);
-        if(categoryId != null) {
-            menus = menus.stream()
-                    .filter(menu -> menu.getCategoryId().equals(categoryId))
-                    .toList();
-        }
-        return ResponseEntity.ok(ApiResDTO.success(menus));
+        Long storeId = 1L;
+        List<Menu> menus = menuService.getAllMenus(storeId, categoryId);
+        List<MenuResDTO> menuResDTOs = menus.stream().map(Menu::toMenuResDTO).toList();
+        return ResponseEntity.ok(ApiResDTO.success(menuResDTOs));
     }
 
     /**
@@ -40,11 +46,8 @@ public class MenuController {
      */
     @GetMapping("/{menuId}")
     public ResponseEntity<ApiResDTO<MenuDetailResDTO>> getMenuById(@PathVariable Long menuId) {
-        MenuDetailResDTO detailMenu = new MenuDetailResDTO(1L, "Americano","description", 5000, 1L, "COFFEE", "https://image.com", List.of());
-        if (menuId != 1L) {
-            //TODO: 예외를 던져서 API 응답을 처리하는 방법으로 변경 - 컨트롤러에서 예외를 던지는 것이 아니라, 서비스에서 예외를 던지도록 변경
-            return ResponseEntity.notFound().build();
-        }
+        Menu menu = menuService.getMenuById(menuId);
+        MenuDetailResDTO detailMenu = menu.toMenuDetailResDTO();
         return ResponseEntity.ok(ApiResDTO.success(detailMenu));
     }
 
@@ -54,8 +57,37 @@ public class MenuController {
      */
     @PostMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createMenu(@RequestBody @Valid CreateMenuReqDTO createMenuReqDTO) {
-        createMenuReqDTO.toString();
-        Long createdMenuId = 2L;
+        Category category = null;
+        if (createMenuReqDTO.getCategoryId() != null) {
+            category = categoryService.getCategoryById(createMenuReqDTO.getCategoryId());
+        }
+
+        List<Option> options = (createMenuReqDTO.getOptions() != null)
+                ? createMenuReqDTO.getOptions().stream()
+                .map(optionDTO -> {
+                    List<Choice> choices = (optionDTO.getChoices() != null)
+                            ? optionDTO.getChoices().stream()
+                            .map(choiceDTO -> new Choice(null, choiceDTO.getName(), choiceDTO.getPrice()))
+                            .collect(Collectors.toList())
+                            : Collections.emptyList();
+                    return new Option(null, optionDTO.getName(), optionDTO.isMultipleSelection(), optionDTO.isRequired(), choices);
+                }).collect(Collectors.toList())
+                : Collections.emptyList();
+
+        Menu menu = new Menu(
+                null,
+                createMenuReqDTO.getName(),
+                createMenuReqDTO.getPrice(),
+                category,
+                1L,
+                createMenuReqDTO.getImage(),
+                createMenuReqDTO.getDescription(),
+                options
+        );
+
+        Menu createdMenu = menuService.createMenu(menu);
+        Long createdMenuId = createdMenu.getId();
+
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdMenuId).build()));
     }
 
@@ -66,7 +98,32 @@ public class MenuController {
     @PatchMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateMenu(
             @RequestBody @Valid UpdateMenuReqDTO updateMenuReqDTO) {
-        Long updatedMenuId = updateMenuReqDTO.getId();
+        Category category = null;
+        if (updateMenuReqDTO.getCategoryId() != null) {
+            category = categoryService.getCategoryById(updateMenuReqDTO.getCategoryId());
+        }
+        List<Option> options = (updateMenuReqDTO.getOptions() != null)
+                ? updateMenuReqDTO.getOptions().stream()
+                .map(optionDTO -> {
+                    List<Choice> choices = (optionDTO.getChoices() != null)
+                            ? optionDTO.getChoices().stream()
+                            .map(choiceDTO -> new Choice(null, choiceDTO.getName(), choiceDTO.getPrice()))
+                            .collect(Collectors.toList())
+                            : Collections.emptyList();
+                    return new Option(null, optionDTO.getName(), optionDTO.isMultipleSelection(), optionDTO.isRequired(), choices);
+                }).collect(Collectors.toList())
+                : Collections.emptyList();
+        Menu menu = new Menu(
+                updateMenuReqDTO.getId(),
+                updateMenuReqDTO.getName(),
+                updateMenuReqDTO.getPrice(),
+                category,
+                1L,
+                updateMenuReqDTO.getImage(),
+                updateMenuReqDTO.getDescription(),
+                options
+        );
+        Long updatedMenuId = menuService.updateMenu(menu).getId();
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedMenuId).build()));
     }
 
@@ -76,11 +133,7 @@ public class MenuController {
      */
     @DeleteMapping("/{menuId}")
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> deleteMenu(@PathVariable Long menuId) {
-        Long deletedId = menuId;
-        if(deletedId != 1L) {
-            //TODO: 예외를 던져서 API 응답을 처리하는 방법으로 변경 - 컨트롤러에서 예외를 던지는 것이 아니라, 서비스에서 예외를 던지도록 변경
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(deletedId).build()));
+        menuService.deleteMenu(menuId);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(menuId).build()));
     }
 }
