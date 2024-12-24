@@ -12,6 +12,7 @@ import com.terte.service.category.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -46,20 +47,22 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public Menu createMenu(Menu menu) {
-        Menu savedMenu = menuRepository.save(menu);
-
         if (menu.getOptions() != null) {
+            List<Option> savedOptions = new ArrayList<>();
             menu.getOptions().forEach(option -> {
                 Option savedOption = createOption(option);
-
                 if (option.getChoices() != null) {
-                    option.getChoices().forEach(this::createChoice);
+                    List<Choice> savedChoices = new ArrayList<>();
+                    option.getChoices().forEach(choice -> {
+                        savedChoices.add(createChoice(choice));
+                    });
+                    savedOption.setChoices(savedChoices);
                 }
+                savedOptions.add(savedOption);
             });
+            menu.setOptions(savedOptions);
         }
-
-        return savedMenu;
-
+        return menuRepository.save(menu);
 
     }
 
@@ -89,30 +92,36 @@ public class MenuServiceImpl implements MenuService {
         }
 
 
-       Menu updatedMenu = menuRepository.save(menu);
 
         if (menu.getOptions() != null) {
+            List<Option> updatedOptions = new ArrayList<>();
             menu.getOptions().forEach(option -> {
-
-                if(option.getId() == null){
-                    createOption(option);
-                } else {
-                    updateOption(option);
-                }
+                List<Choice> updatedChoices = new ArrayList<>();
 
                 if (option.getChoices() != null) {
                     option.getChoices().forEach(choice -> {
-                        if(choice.getId() == null){
-                            createChoice(choice);
+                        if (choice.getId() == null) {
+                            updatedChoices.add(createChoice(choice));
                         } else {
-                            updateChoice(choice);
+                            updatedChoices.add(updateChoice(choice));
                         }
                     });
                 }
-            });
-        }
 
-        return updatedMenu;
+                Option updatedOption;
+                if (option.getId() == null) {
+                    updatedOption = createOption(option);
+                } else {
+                    updatedOption = updateOption(option);
+                }
+
+                updatedOption.setChoices(updatedChoices);
+                updatedOptions.add(updatedOption);
+            });
+
+            menu.setOptions(updatedOptions);
+        }
+        return menuRepository.save(menu);
     }
 
     @Override
@@ -170,11 +179,11 @@ public class MenuServiceImpl implements MenuService {
         return optionRepository.save(option);
     }
 
-    private Option createOption(Option option) {
+    public Option createOption(Option option) {
         return optionRepository.save(option);
     }
 
-    private Choice createChoice(Choice choice) {
+    public Choice createChoice(Choice choice) {
         return choiceRepository.save(choice);
     }
 
