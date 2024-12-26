@@ -11,16 +11,17 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Repository
 public class MenuRepository {
-    private final Map<Long, Menu> menuStorage = new HashMap<>();
+    private final Map<Long, Menu> menuStorage = new ConcurrentHashMap<>();
 
     public MenuRepository() {
         // 초기 데이터 설정
-        Category category1 = new Category(101L, "음료", 1L);
-        Category category2 = new Category(102L, "빙수", 1L);
+        Category category1 = new Category(101L, "음료", 1L,"음료설명");
+        Category category2 = new Category(102L, "빙수", 1L,"빙수설명");
 
         Choice choice1 = new Choice(1L, "샷 추가", 500);
         Choice choice2 = new Choice(2L, "시럽 추가", 500);

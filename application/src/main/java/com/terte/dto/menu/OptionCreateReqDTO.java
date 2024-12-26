@@ -4,11 +4,13 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class CreateCategoryReqDTO {
+@NoArgsConstructor
+public class OptionCreateReqDTO {
     @NotNull
     private String name;
-    private String description;
+    @NotNull
+    private Boolean multipleSelection;
+    @NotNull
+    private Boolean required;
 }

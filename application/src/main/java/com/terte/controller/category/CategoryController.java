@@ -3,8 +3,8 @@ package com.terte.controller.category;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.menu.CategoryResDTO;
-import com.terte.dto.menu.CreateCategoryReqDTO;
-import com.terte.dto.menu.UpdateCategoryReqDTO;
+import com.terte.dto.menu.CategoryCreateReqDTO;
+import com.terte.dto.menu.CategoryUpdateReqDTO;
 import com.terte.entity.category.Category;
 import com.terte.service.category.CategoryService;
 import jakarta.validation.Valid;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +29,7 @@ public class CategoryController {
     public ResponseEntity<ApiResDTO<List<CategoryResDTO>>> getCategoryList() {
         //return categoryService.getCategoryList();
         List<Category> categories = categoryService.getAllCategories(1L);
-        List<CategoryResDTO> CategoryResDTOList = categories.stream().map(Category::toCategoryResDTO).collect(Collectors.toList());
+        List<CategoryResDTO> CategoryResDTOList = categories.stream().map(CategoryResDTO::from).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResDTO.success(CategoryResDTOList));
     }
 
@@ -40,8 +39,8 @@ public class CategoryController {
      * 카테고리 생성
      */
     @PostMapping
-    public ResponseEntity<ApiResDTO<CommonIdResDTO>> createCategory(@RequestBody @Valid CreateCategoryReqDTO categoryReqDTO) {
-        Category category = new Category(null, categoryReqDTO.getName(), 1L);
+    public ResponseEntity<ApiResDTO<CommonIdResDTO>> createCategory(@RequestBody @Valid CategoryCreateReqDTO categoryReqDTO) {
+        Category category = new Category(null, categoryReqDTO.getName(), 1L, categoryReqDTO.getDescription());
         Category createdCategory = categoryService.createCategory(category);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdCategory.getId()).build()));
     }
@@ -52,8 +51,8 @@ public class CategoryController {
      * 카테고리 수정
      */
     @PatchMapping
-    public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateCategory(@RequestBody UpdateCategoryReqDTO categoryReqDTO) {
-        Category category = new Category(categoryReqDTO.getId(), categoryReqDTO.getName(), 1L);
+    public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateCategory(@RequestBody CategoryUpdateReqDTO categoryReqDTO) {
+        Category category = new Category(categoryReqDTO.getId(), categoryReqDTO.getName(), 1L, categoryReqDTO.getDescription());
         Category updatedCategory = categoryService.updateCategory(category);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedCategory.getId()).build()));
     }

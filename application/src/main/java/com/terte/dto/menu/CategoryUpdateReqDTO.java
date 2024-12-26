@@ -5,7 +5,9 @@ import lombok.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChoiceDTO {
+@Builder
+public class CategoryUpdateReqDTO {
+    private Long id;
     private String name;
-    private int price;
+    private String description;
 }

@@ -5,10 +5,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 public class ChoiceRepository {
-    private final Map<Long, Choice> choiceStorage = new HashMap<>();
+    private final Map<Long, Choice> choiceStorage = new ConcurrentHashMap<>();
 
     public Choice findById(Long id) {
         return choiceStorage.get(id);

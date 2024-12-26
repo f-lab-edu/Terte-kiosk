@@ -6,9 +6,11 @@ import com.terte.repository.category.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
@@ -24,15 +27,10 @@ class CategoryServiceTest {
     @InjectMocks
     private CategoryServiceImpl categoryService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Test
     void getAllCategories() {
         Long storeId = 1L;
-        List<Category> categories = Arrays.asList(new Category(1L, "음료", 1L), new Category(2L, "빙수", 1L));
+        List<Category> categories = Arrays.asList(new Category(1L, "음료", 1L,"음료설명"), new Category(2L, "빙수", 1L,"빙수설명"));
         when(categoryRepository.findByStoreId(storeId)).thenReturn(categories);
 
         List<Category> result = categoryService.getAllCategories(storeId);
@@ -44,7 +42,7 @@ class CategoryServiceTest {
     @Test
     void getCategoryById() {
         Long categoryId = 1L;
-        Category category = new Category(categoryId, "음료", 1L);
+        Category category = new Category(categoryId, "음료", 1L,"음료설명");
         when(categoryRepository.findById(categoryId)).thenReturn(category);
 
         Category result = categoryService.getCategoryById(categoryId);
@@ -56,8 +54,8 @@ class CategoryServiceTest {
 
     @Test
     void createCategory() {
-        Category category = new Category(null, "Beverages", 1L);
-        Category savedCategory = new Category(1L, "Beverages", 1L);
+        Category category = new Category(null, "Beverages", 1L,"음료설명");
+        Category savedCategory = new Category(1L, "Beverages", 1L,"음료설명");
         when(categoryRepository.save(category)).thenReturn(savedCategory);
 
         Category result = categoryService.createCategory(category);
@@ -71,8 +69,8 @@ class CategoryServiceTest {
     @DisplayName("카테고리가 존재할 때 정상적으로 업데이트된다")
     void updateCategorySuccess() {
         // given
-        Category existingCategory = new Category(1L, "음료",1L);
-        Category updatedCategory = new Category(1L, "빙수",1L);
+        Category existingCategory = new Category(1L, "음료",1L,"음료설명");
+        Category updatedCategory = new Category(1L, "빙수",1L,"빙수설명");
 
         when(categoryRepository.findById(1L)).thenReturn(existingCategory);
         when(categoryRepository.update(updatedCategory)).thenReturn(updatedCategory);
@@ -93,7 +91,7 @@ class CategoryServiceTest {
 
         NotFoundException exception = assertThrows(
                 NotFoundException.class,
-                () -> categoryService.updateCategory(new Category(1L, "빙수",1L))
+                () -> categoryService.updateCategory(new Category(1L, "빙수",1L,"빙수설명"))
         );
 
         assertEquals("Category not found", exception.getMessage());
@@ -104,8 +102,8 @@ class CategoryServiceTest {
     @Test
     @DisplayName("이름이 없는 카테고리를 업데이트할 때 기존 이름 유지")
     void updateCategoryNameNull() {
-        Category existingCategory = new Category(1L, "음료",1L);
-        Category updatedCategory = new Category(1L, null,1L);
+        Category existingCategory = new Category(1L, "음료",1L,"음료설명");
+        Category updatedCategory = new Category(1L, null,1L,"음료설명");
 
         when(categoryRepository.findById(1L)).thenReturn(existingCategory);
         when(categoryRepository.update(any(Category.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -121,7 +119,7 @@ class CategoryServiceTest {
     @DisplayName("카테고리 삭제 성공")
     void deleteCategorySuccess() {
         Long categoryId = 1L;
-        Category existingCategory = new Category(1L, "음료",1L);
+        Category existingCategory = new Category(1L, "음료",1L,"음료설명");
         when(categoryRepository.findById(categoryId)).thenReturn(existingCategory);
         doNothing().when(categoryRepository).deleteById(categoryId);
 
