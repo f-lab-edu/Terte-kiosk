@@ -6,6 +6,7 @@ import com.terte.TerteMainApplication;
 import com.terte.dto.menu.CategoryResDTO;
 import com.terte.dto.menu.CategoryCreateReqDTO;
 import com.terte.dto.menu.CategoryUpdateReqDTO;
+import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -75,7 +76,6 @@ class CategoryControllerIntegrationTest {
     }
     @Test
     @DisplayName("카테고리가 성공적으로 생성되고 성공 후, 생성된 ID를 반환한다")
-    @Order(1)
     void testCreateCategorySuccess() throws Exception {
         CategoryCreateReqDTO categoryCreateReqDTO = new CategoryCreateReqDTO("New Category", "New Category Description");
         mockMvc.perform(post("/categories")
@@ -99,9 +99,14 @@ class CategoryControllerIntegrationTest {
 
     @Test
     @DisplayName("카테고리 수정 시 성공하면 200 OK와 수정된 카테고리 ID를 반환한다")
-    @Order(2)
     void testUpdateCategorySuccess() throws Exception {
-        Long targetId = 3L;
+        CategoryCreateReqDTO categoryCreateReqDTO = new CategoryCreateReqDTO("New Category", "New Category Description");
+        String res = mockMvc.perform(post("/categories")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(categoryCreateReqDTO))).andReturn().getResponse().getContentAsString();
+        JSONObject jsonObject = new JSONObject(res);
+        Long targetId = jsonObject.getJSONObject("data").getLong("id");
+
         CategoryUpdateReqDTO categoryUpdateReqDTO = CategoryUpdateReqDTO.builder()
                 .id(targetId)
                 .name("Updated Category")
@@ -130,12 +135,18 @@ class CategoryControllerIntegrationTest {
 
     @Test
     @DisplayName("카테고리 삭제 시 성공하면 200 OK와 삭제된 카테고리 ID를 반환한다")
-    @Order(3)
     void testDeleteCategorySuccess() throws Exception {
-        mockMvc.perform(delete("/categories/3")
+        CategoryCreateReqDTO categoryCreateReqDTO = new CategoryCreateReqDTO("New Category", "New Category Description");
+        String res = mockMvc.perform(post("/categories")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(categoryCreateReqDTO))).andReturn().getResponse().getContentAsString();
+        JSONObject jsonObject = new JSONObject(res);
+        Long targetId = jsonObject.getJSONObject("data").getLong("id");
+        String deleteReqUrl = "/categories/" + targetId;
+        mockMvc.perform(delete(deleteReqUrl)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(3));
+                .andExpect(jsonPath("$.data.id").value(targetId));
     }
 
     @Test

@@ -2,10 +2,8 @@ package com.terte.controller.menu;
 
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
-import com.terte.dto.menu.MenuDetailResDTO;
-import com.terte.dto.menu.OptionCreateReqDTO;
-import com.terte.dto.menu.OptionResDTO;
-import com.terte.dto.menu.OptionUpdateReqDTO;
+import com.terte.dto.menu.*;
+import com.terte.entity.menu.Choice;
 import com.terte.entity.menu.Menu;
 import com.terte.entity.menu.Option;
 import com.terte.service.menu.MenuService;
@@ -26,16 +24,6 @@ public class OptionController {
     private final MenuService menuService;
     private final OptionService optionService;
 
-    /**
-     * GET /options/{menuId}
-     * 특정 메뉴의 옵션 조회
-     */
-    @GetMapping("/{menuId}")
-    public ResponseEntity<ApiResDTO<List<OptionResDTO>>> getMenuById(@PathVariable Long menuId) {
-        List<Option> options = menuService.getOptionsById(menuId);
-        List<OptionResDTO> optionResDTOS = options.stream().map(OptionResDTO::from).collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResDTO.success(optionResDTOS));
-    }
 
     /**
      * POST /options
@@ -76,5 +64,17 @@ public class OptionController {
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateOption(@PathVariable Long optionId){
         optionService.deleteOption(optionId);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(optionId).build()));
+    }
+
+    /**
+     * GET /options/{optionId}/choices
+     * 특정 옵션의 선택지 조회
+     */
+    @GetMapping("/{optionId}/choices")
+    public ResponseEntity<ApiResDTO<List<ChoiceResDTO>>> getMenuById(@PathVariable Long optionId) {
+        List<Choice> choices = optionService.getChoicesById(optionId);
+        List<ChoiceResDTO> choiceResDTOList = choices.stream().map(ChoiceResDTO::from).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResDTO.success(choiceResDTOList));
+
     }
 }

@@ -26,18 +26,6 @@ public class ChoiceController {
     private final ChoiceService choiceService;
 
     /**
-     * GET /choices/{optionId}
-     * 특정 옵션의 선택지 조회
-     */
-    @GetMapping("/{optionId}")
-    public ResponseEntity<ApiResDTO<List<ChoiceResDTO>>> getMenuById(@PathVariable Long optionId) {
-        List<Choice> choices = optionService.getChoicesById(optionId);
-        List<ChoiceResDTO> choiceResDTOList = choices.stream().map(ChoiceResDTO::from).collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResDTO.success(choiceResDTOList));
-
-    }
-
-    /**
      * POST /choices
      * 선택지생성
      */

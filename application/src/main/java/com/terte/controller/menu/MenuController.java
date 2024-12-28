@@ -111,4 +111,17 @@ public class MenuController {
         menuService.deleteMenu(menuId);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(menuId).build()));
     }
+
+    /**
+     * GET /options/{menuId}
+     * 특정 메뉴의 옵션 조회
+     */
+    @GetMapping("/{menuId}/options")
+    public ResponseEntity<ApiResDTO<List<OptionResDTO>>> getOptionsById(@PathVariable Long menuId) {
+        List<Option> options = menuService.getOptionsById(menuId);
+        List<OptionResDTO> optionResDTOS = options.stream().map(OptionResDTO::from).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResDTO.success(optionResDTOS));
+    }
 }
+
+

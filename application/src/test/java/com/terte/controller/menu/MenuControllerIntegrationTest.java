@@ -146,7 +146,6 @@ class MenuControllerIntegrationTest {
 
     @Test
     @DisplayName("메뉴 수정 시 성공하면 200 OK와 수정된 메뉴 ID를 반환한다")
-    @Order(2)
     void testUpdateMenuSuccess() throws Exception {
         MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
         String res = mockMvc.perform(post("/menus")
