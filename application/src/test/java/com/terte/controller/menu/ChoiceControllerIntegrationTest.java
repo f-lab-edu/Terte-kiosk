@@ -2,6 +2,9 @@ package com.terte.controller.menu;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
+import com.terte.dto.menu.ChoiceCreateReqDTO;
+import com.terte.dto.menu.ChoiceUpdateReqDTO;
+import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -12,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,33 +31,73 @@ public class ChoiceControllerIntegrationTest {
 
 
     @Test
-    @DisplayName("옵션ID로 선택지를 조회할 때 존재하지 않는 옵션ID를 요청하면 404를 반환한다.")
-    void testGetChoicesByNonExistingOptionId() {
-    }
-
-    @Test
     @DisplayName("선택지를 생성한다.")
-    void testCreateChoice() {
+    void testCreateChoice() throws Exception {
+        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500);
+        mockMvc.perform(post("/choices")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(6L));
     }
 
     @Test
     @DisplayName("선택지를 수정한다.")
-    void testUpdateChoice() {
+    void testUpdateChoice() throws Exception {
+        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500);
+        String res = mockMvc.perform(post("/choices")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
+                ).andReturn().getResponse().getContentAsString();
+        JSONObject jsonObject = new JSONObject(res);
+        Long choiceId = jsonObject.getJSONObject("data").getLong("id");
+
+        ChoiceUpdateReqDTO choiceUpdateReqDTO = new ChoiceUpdateReqDTO(choiceId, null, 1000);
+        mockMvc.perform(put("/choices")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(choiceUpdateReqDTO))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(choiceId));
     }
 
     @Test
     @DisplayName("존재하지 않는 선택지를 수정하려고 하면 404를 반환한다.")
-    void testUpdateChoiceWithNonExistingChoice() {
+    void testUpdateChoiceWithNonExistingChoice() throws  Exception {
+        ChoiceUpdateReqDTO choiceUpdateReqDTO = new ChoiceUpdateReqDTO(100L, "샷 추가", 1000);
+        mockMvc.perform(put("/choices")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(choiceUpdateReqDTO))
+                )
+                .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("선택지를 삭제한다.")
-    void testDeleteChoice() {
+    void testDeleteChoice() throws Exception {
+        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500);
+        String res = mockMvc.perform(post("/choices")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
+                ).andReturn().getResponse().getContentAsString();
+        JSONObject jsonObject = new JSONObject(res);
+        Long choiceId = jsonObject.getJSONObject("data").getLong("id");
+
+        mockMvc.perform(delete("/choices/" + choiceId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(choiceId));
     }
 
     @Test
     @DisplayName("존재하지 않는 선택지를 삭제하려고 하면 404를 반환한다.")
-    void testDeleteNonExistingChoice() {
+    void testDeleteNonExistingChoice() throws Exception {
+        mockMvc.perform(delete("/choices/100")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isNotFound());
     }
 
 }
