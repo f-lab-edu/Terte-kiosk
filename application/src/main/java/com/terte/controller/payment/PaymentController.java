@@ -9,13 +9,15 @@ import com.terte.dto.payment.PaymentResDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * GET /payments
- * 결제 조회
- */
+
 @RestController
 @RequestMapping("/payments")
 public class PaymentController {
+
+    /**
+     * GET /payments
+     * 결제 조회
+     */
     @GetMapping
     public ResponseEntity<ApiResDTO<PaymentResDTO>> getPayment() {
         PaymentResDTO payment = new PaymentResDTO(1L, 1L, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED);

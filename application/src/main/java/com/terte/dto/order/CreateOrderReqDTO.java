@@ -1,7 +1,6 @@
 package com.terte.dto.order;
 
 import com.terte.common.enums.OrderType;
-import com.terte.dto.menu.MenuResDTO;
 import lombok.*;
 
 import java.util.List;
@@ -11,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CreateOrderReqDTO {
-    private List<MenuResDTO> menuList;
+    private List<OrderItemDTO> orderItemList;
     private OrderType orderType;
     private String phoneNumber;
     private Integer tableNumber;
