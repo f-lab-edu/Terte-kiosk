@@ -4,6 +4,7 @@ import com.terte.common.enums.PaymentCreateType;
 import com.terte.common.enums.PaymentMethod;
 import com.terte.common.enums.PaymentStatus;
 import com.terte.dto.order.CreateOrderReqDTO;
+import com.terte.entity.order.Order;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,5 @@ public class Payment {
     private Long storeId;
     private PaymentMethod paymentMethod;
     private PaymentStatus status;
-    private Long orderId;
+    private Order order;
 }
