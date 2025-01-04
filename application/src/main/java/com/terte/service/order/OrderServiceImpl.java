@@ -1,6 +1,7 @@
 package com.terte.service.order;
 
 import com.terte.common.exception.NotFoundException;
+import com.terte.entity.menu.Menu;
 import com.terte.entity.order.Order;
 import com.terte.repository.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order getOrderById(Long id) {
-        return orderRepository.findById(id);
+        Order existingOrder =  orderRepository.findById(id);
+        if (existingOrder == null) {
+            throw new NotFoundException("Order not found");
+        }else {
+            return existingOrder;
+        }
     }
 
     @Override
@@ -50,6 +56,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void deleteOrder(Long id) {
+        Order existingOrder = orderRepository.findById(id);
+        if (existingOrder == null) {
+            throw new NotFoundException("Order not found");
+        }
+        orderRepository.deleteById(id);
 
     }
 }

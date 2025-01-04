@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
 class PaymentControllerIntegrationTest {
-
+    //TODO: PaymentController 통합 테스트 코드 수정
     @Autowired
     private MockMvc mockMvc;
 

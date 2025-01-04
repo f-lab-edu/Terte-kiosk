@@ -177,9 +177,9 @@ class MenuServiceTest {
 
         menuService.deleteMenu(menuId);
 
-        verify(menuRepository).deleteById(menuId);
-        verify(optionRepository).deleteById(optionId);
-        verify(choiceRepository).deleteById(choiceId);
+        verify(menuRepository,times(1)).deleteById(menuId);
+        verify(optionRepository,times(1)).deleteById(optionId);
+        verify(choiceRepository,times(1)).deleteById(choiceId);
     }
 
     @Test
