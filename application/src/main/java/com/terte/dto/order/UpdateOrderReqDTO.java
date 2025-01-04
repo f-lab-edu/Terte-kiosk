@@ -15,7 +15,6 @@ public class UpdateOrderReqDTO{
     @NotNull
     private Long id;
     private OrderStatus status;
-    private List<OrderItemDTO> orderItemList;
     private OrderType orderType;
     private String phoneNumber;
     private Integer tableNumber;

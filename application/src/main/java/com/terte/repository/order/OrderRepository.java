@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Repository
 public class OrderRepository {
@@ -33,7 +34,9 @@ public class OrderRepository {
         orderStorage.put(order1.getId(), order1);
 
     }
-
+    public List<Order> findByStoreId(Long storeId) {
+        return orderStorage.values().stream().filter(order -> order.getStoreId().equals(storeId)).collect(Collectors.toList());
+    }
     public Order findById(Long id) {
         return orderStorage.get(id);
     }

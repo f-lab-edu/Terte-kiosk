@@ -92,14 +92,15 @@ public class OrderController {
     /**
      * PATCH /categories
      * 주문 수정
+     * 주문 상태, 주문 타입, 전화번호, 테이블 번호 수정
+     * 주문 메뉴 리스트의 수정은 불가능(삭제 후 재성성 해야한다.)
      */
     @PatchMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateOrder(@RequestBody UpdateOrderReqDTO updateOrderReqDTO) {
-        //Long updatedOrderId = orderService.updateOrder(updateOrderReqDTO);
-        if(updateOrderReqDTO.getId() != 1L) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updateOrderReqDTO.getId()).build()));
+        Long storeId = 1L;
+        Order order = new Order(updateOrderReqDTO.getId(), storeId, updateOrderReqDTO.getStatus(), null, updateOrderReqDTO.getOrderType(), updateOrderReqDTO.getPhoneNumber(), updateOrderReqDTO.getTableNumber());
+        Order updatedOrder = orderService.updateOrder(order);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedOrder.getId()).build()));
     }
     /**
      * DELETE /categories
@@ -107,10 +108,7 @@ public class OrderController {
      */
     @DeleteMapping("/{orderId}")
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> deleteOrder(@PathVariable Long orderId) {
-       // Long deletedOrderId = orderService.deleteOrder(orderId);
-        if(orderId != 1L) {
-            return ResponseEntity.notFound().build();
-        }
+        orderService.deleteOrder(orderId);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(orderId).build()));
     }
 }
