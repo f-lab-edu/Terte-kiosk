@@ -9,6 +9,7 @@ import com.terte.dto.menu.CategoryResDTO;
 import com.terte.dto.menu.MenuResDTO;
 import com.terte.dto.order.CreateOrderReqDTO;
 import com.terte.dto.order.OrderDetailResDTO;
+import com.terte.dto.order.OrderItemDTO;
 import com.terte.dto.order.UpdateOrderReqDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -99,8 +100,9 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 생성 시 성공적으로 생성되고 생성된 ID를 반환한다")
     void testCreateOrderSuccess() throws Exception {
+        OrderItemDTO orderItemDTO =  new OrderItemDTO(1L,1,List.of(null));
         CreateOrderReqDTO createOrderReqDTO = new CreateOrderReqDTO(
-                List.of(new MenuResDTO(1L, "Americano", 1000, 1L, "COFFEE", "image")),
+                List.of(orderItemDTO),
                 OrderType.EATIN,
                 "010-1234-5678",
                 1,
