@@ -16,6 +16,14 @@ public class OptionServiceImpl implements OptionService {
     private final OptionRepository optionRepository;
 
     @Override
+    public Option getOptionById(Long id) {
+        Option existingOption = optionRepository.findById(id);
+        if(existingOption == null){
+            throw new NotFoundException("Option Not Found");
+        }
+        return existingOption;
+    }
+    @Override
     public Option createOption(Option option) {
         return optionRepository.save(option);
     }

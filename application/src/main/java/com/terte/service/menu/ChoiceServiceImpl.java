@@ -11,6 +11,14 @@ import org.springframework.stereotype.Service;
 public class ChoiceServiceImpl implements ChoiceService {
     private final ChoiceRepository choiceRepository;
     @Override
+    public Choice getChoiceById(Long id) {
+        Choice existingChoice = choiceRepository.findById(id);
+        if(existingChoice == null){
+            throw new NotFoundException("Choice Not Found");
+        }
+        return existingChoice;
+    }
+    @Override
     public Choice createChoice(Choice choice) {
         return choiceRepository.save(choice);
     }

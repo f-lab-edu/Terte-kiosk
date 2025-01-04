@@ -8,6 +8,7 @@ import java.util.List;
 
 @Service
 public interface OptionService {
+    Option getOptionById(Long id);
     Option createOption(Option option);
     Option updateOption(Option option);
     void deleteOption(Long id);

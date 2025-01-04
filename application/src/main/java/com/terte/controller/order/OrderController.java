@@ -4,22 +4,33 @@ import com.terte.common.enums.OrderStatus;
 import com.terte.common.enums.OrderType;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
-import com.terte.dto.order.CreateOrderReqDTO;
-import com.terte.dto.order.OrderDetailResDTO;
-import com.terte.dto.order.OrderResDTO;
-import com.terte.dto.order.UpdateOrderReqDTO;
+import com.terte.dto.order.*;
+import com.terte.entity.menu.Choice;
+import com.terte.entity.menu.Menu;
+import com.terte.entity.menu.Option;
+import com.terte.entity.order.Order;
+import com.terte.entity.order.OrderItem;
+import com.terte.entity.order.SelectedOption;
+import com.terte.service.menu.ChoiceService;
+import com.terte.service.menu.MenuService;
+import com.terte.service.menu.OptionService;
+import com.terte.service.order.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orders")
 @AllArgsConstructor
 public class OrderController {
 
-    //private final OrderService orderService;
+    private final OrderService orderService;
+    private final MenuService menuService;
+    private final OptionService optionService;
+    private final ChoiceService choiceService;
     /**
      *
      * Get /orders
@@ -61,9 +72,22 @@ public class OrderController {
      */
     @PostMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createOrder(@RequestBody CreateOrderReqDTO createOrderReqDTO) {
-        //Long createdOrderId = orderService.createOrder(createOrderReqDTO);
-        Long createdOrderId = 2L;
-        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdOrderId).build()));
+        Long storeId = 1L;
+        List<OrderItemDTO> orderItemDTOList = createOrderReqDTO.getOrderItemList();
+        List<OrderItem> orderItemList = orderItemDTOList.stream().map(orderItemDTO -> {
+            Menu menu = menuService.getMenuById(orderItemDTO.getMenuId());
+            List<SelectedOption> selectedOptionList =  orderItemDTO.getSelectedOptions().stream().map(selectedOptionDTO -> {
+                Option option = optionService.getOptionById(selectedOptionDTO.getOptionId());
+                List<Choice> choices = selectedOptionDTO.getSelectedChoiceIds().stream().map(choiceService::getChoiceById).collect(Collectors.toList());
+                return new SelectedOption(null, option, choices);
+            }).collect(Collectors.toList());
+            return new OrderItem(null, menu, orderItemDTO.getQuantity(), selectedOptionList);
+        }).toList();
+
+        Order order = new Order(null, storeId, OrderStatus.ORDERED, orderItemList,createOrderReqDTO.getOrderType(),createOrderReqDTO.getPhoneNumber(),createOrderReqDTO.getTableNumber());
+        Order createdOrder = orderService.createOrder(order);
+
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdOrder.getId()).build()));
     }
     /**
      * PATCH /categories
