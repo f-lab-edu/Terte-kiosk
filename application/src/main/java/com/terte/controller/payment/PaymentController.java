@@ -17,6 +17,7 @@ import com.terte.entity.order.Order;
 import com.terte.entity.order.OrderItem;
 import com.terte.entity.order.SelectedOption;
 import com.terte.entity.payment.Payment;
+import com.terte.service.helper.OrderServiceHelper;
 import com.terte.service.menu.ChoiceService;
 import com.terte.service.menu.MenuService;
 import com.terte.service.menu.OptionService;
@@ -36,9 +37,7 @@ import java.util.stream.Collectors;
 public class PaymentController {
     private final PaymentService paymentService;
     private final OrderService orderService;
-    private final MenuService menuService;
-    private final OptionService optionService;
-    private final ChoiceService choiceService;
+    private final OrderServiceHelper orderServiceHelper;
 
     /**
      * GET /payments
@@ -73,21 +72,9 @@ public class PaymentController {
             if(createOrderReqDTO == null){
                 return ResponseEntity.badRequest().build();
             }
-            List<OrderItemDTO> orderItemDTOList = createOrderReqDTO.getOrderItemList();
-            List<OrderItem> orderItemList = orderItemDTOList.stream().map(orderItemDTO -> {
-                Menu menu = menuService.getMenuById(orderItemDTO.getMenuId());
-                List<SelectedOption> selectedOptionList =  orderItemDTO.getSelectedOptions().stream().map(selectedOptionDTO -> {
-                    Option option = optionService.getOptionById(selectedOptionDTO.getOptionId());
-                    List<Choice> choices = selectedOptionDTO.getSelectedChoiceIds().stream().map(choiceService::getChoiceById).collect(Collectors.toList());
-                    return new SelectedOption(null, option, choices);
-                }).collect(Collectors.toList());
-                return new OrderItem(null, menu, orderItemDTO.getQuantity(), selectedOptionList);
-            }).toList();
-
-            Order order = new Order(null, storeId, OrderStatus.ORDERED, orderItemList,createOrderReqDTO.getOrderType(),createOrderReqDTO.getPhoneNumber(),createOrderReqDTO.getTableNumber());
-            Order createdOrder = orderService.createOrder(order);
-
-            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, createdOrder);
+            Order saveTargetOrder = orderServiceHelper.createOrder(createOrderReqDTO, storeId);
+            Order savedOrder = orderService.createOrder(saveTargetOrder);
+            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, savedOrder);
 
             createdPayment = paymentService.createPayment(payment);
         }

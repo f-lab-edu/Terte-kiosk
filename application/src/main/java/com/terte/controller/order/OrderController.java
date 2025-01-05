@@ -11,6 +11,7 @@ import com.terte.entity.menu.Option;
 import com.terte.entity.order.Order;
 import com.terte.entity.order.OrderItem;
 import com.terte.entity.order.SelectedOption;
+import com.terte.service.helper.OrderServiceHelper;
 import com.terte.service.menu.ChoiceService;
 import com.terte.service.menu.MenuService;
 import com.terte.service.menu.OptionService;
@@ -28,9 +29,7 @@ import java.util.stream.Collectors;
 public class OrderController {
 
     private final OrderService orderService;
-    private final MenuService menuService;
-    private final OptionService optionService;
-    private final ChoiceService choiceService;
+    private final OrderServiceHelper orderServiceHelper;
     /**
      *
      * Get /orders
@@ -73,18 +72,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createOrder(@RequestBody CreateOrderReqDTO createOrderReqDTO) {
         Long storeId = 1L;
-        List<OrderItemDTO> orderItemDTOList = createOrderReqDTO.getOrderItemList();
-        List<OrderItem> orderItemList = orderItemDTOList.stream().map(orderItemDTO -> {
-            Menu menu = menuService.getMenuById(orderItemDTO.getMenuId());
-            List<SelectedOption> selectedOptionList =  orderItemDTO.getSelectedOptions().stream().map(selectedOptionDTO -> {
-                Option option = optionService.getOptionById(selectedOptionDTO.getOptionId());
-                List<Choice> choices = selectedOptionDTO.getSelectedChoiceIds().stream().map(choiceService::getChoiceById).collect(Collectors.toList());
-                return new SelectedOption(null, option, choices);
-            }).collect(Collectors.toList());
-            return new OrderItem(null, menu, orderItemDTO.getQuantity(), selectedOptionList);
-        }).toList();
-
-        Order order = new Order(null, storeId, OrderStatus.ORDERED, orderItemList,createOrderReqDTO.getOrderType(),createOrderReqDTO.getPhoneNumber(),createOrderReqDTO.getTableNumber());
+        Order order = orderServiceHelper.createOrder(createOrderReqDTO, storeId);
         Order createdOrder = orderService.createOrder(order);
 
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdOrder.getId()).build()));
