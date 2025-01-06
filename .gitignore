@@ -8,3 +8,5 @@ out/
 
 # macOS의 .DS_Store 파일 제외
 *.DS_Store
+
+.env
