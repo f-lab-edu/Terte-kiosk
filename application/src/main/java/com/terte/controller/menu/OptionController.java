@@ -31,12 +31,15 @@ public class OptionController {
      */
     @PostMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createOption(@RequestBody @Valid OptionCreateReqDTO optionCreateReqDTO){
+        Long menuId = optionCreateReqDTO.getMenuId();
+        Menu menu = menuService.getMenuById(menuId);
         Option option = new Option(
                 null,
                 optionCreateReqDTO.getName(),
                 optionCreateReqDTO.getMultipleSelection(),
                 optionCreateReqDTO.getRequired(),
-                null);
+                null,
+                menu);
         Option createdOption = optionService.createOption(option);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdOption.getId()).build()));
     }
@@ -51,7 +54,7 @@ public class OptionController {
                 optionUpdateReqDTO.getName(),
                 optionUpdateReqDTO.getMultipleSelection(),
                 optionUpdateReqDTO.getRequired(),
-                null);
+                null,null);
         Option updatedOption = optionService.updateOption(option);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedOption.getId()).build()));
     }

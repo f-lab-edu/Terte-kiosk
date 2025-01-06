@@ -2,19 +2,16 @@ package com.terte.service.category;
 
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.category.Category;
-import com.terte.repository.category.CategoryRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.terte.repository.category.CategoryMapRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,7 +19,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
     @Mock
-    private CategoryRepository categoryRepository;
+    private CategoryMapRepository categoryMapRepository;
 
     @InjectMocks
     private CategoryServiceImpl categoryService;
@@ -31,38 +28,38 @@ class CategoryServiceTest {
     void getAllCategories() {
         Long storeId = 1L;
         List<Category> categories = Arrays.asList(new Category(1L, "음료", 1L,"음료설명"), new Category(2L, "빙수", 1L,"빙수설명"));
-        when(categoryRepository.findByStoreId(storeId)).thenReturn(categories);
+        when(categoryMapRepository.findByStoreId(storeId)).thenReturn(categories);
 
         List<Category> result = categoryService.getAllCategories(storeId);
 
         assertEquals(2, result.size());
-        verify(categoryRepository, times(1)).findByStoreId(storeId);
+        verify(categoryMapRepository, times(1)).findByStoreId(storeId);
     }
 
     @Test
     void getCategoryById() {
         Long categoryId = 1L;
         Category category = new Category(categoryId, "음료", 1L,"음료설명");
-        when(categoryRepository.findById(categoryId)).thenReturn(category);
+        when(categoryMapRepository.findById(categoryId)).thenReturn(category);
 
         Category result = categoryService.getCategoryById(categoryId);
 
         assertNotNull(result);
         assertEquals("음료", result.getName());
-        verify(categoryRepository, times(1)).findById(categoryId);
+        verify(categoryMapRepository, times(1)).findById(categoryId);
     }
 
     @Test
     void createCategory() {
         Category category = new Category(null, "Beverages", 1L,"음료설명");
         Category savedCategory = new Category(1L, "Beverages", 1L,"음료설명");
-        when(categoryRepository.save(category)).thenReturn(savedCategory);
+        when(categoryMapRepository.save(category)).thenReturn(savedCategory);
 
         Category result = categoryService.createCategory(category);
 
         assertNotNull(result);
         assertEquals(1L, result.getId());
-        verify(categoryRepository, times(1)).save(category);
+        verify(categoryMapRepository, times(1)).save(category);
     }
 
     @Test
@@ -72,22 +69,22 @@ class CategoryServiceTest {
         Category existingCategory = new Category(1L, "음료",1L,"음료설명");
         Category updatedCategory = new Category(1L, "빙수",1L,"빙수설명");
 
-        when(categoryRepository.findById(1L)).thenReturn(existingCategory);
-        when(categoryRepository.update(updatedCategory)).thenReturn(updatedCategory);
+        when(categoryMapRepository.findById(1L)).thenReturn(existingCategory);
+        when(categoryMapRepository.update(updatedCategory)).thenReturn(updatedCategory);
 
         // when
         Category result = categoryService.updateCategory(updatedCategory);
 
         // then
         assertEquals("빙수", result.getName());
-        verify(categoryRepository).findById(1L);
-        verify(categoryRepository).update(updatedCategory);
+        verify(categoryMapRepository).findById(1L);
+        verify(categoryMapRepository).update(updatedCategory);
     }
 
     @Test
     @DisplayName("카테고리가 존재하지 않을 때 NotFoundException 발생")
     void updateCategoryNotFound() {
-        when(categoryRepository.findById(1L)).thenReturn(null);
+        when(categoryMapRepository.findById(1L)).thenReturn(null);
 
         NotFoundException exception = assertThrows(
                 NotFoundException.class,
@@ -95,8 +92,8 @@ class CategoryServiceTest {
         );
 
         assertEquals("Category not found", exception.getMessage());
-        verify(categoryRepository).findById(1L);
-        verify(categoryRepository, never()).update(any());
+        verify(categoryMapRepository).findById(1L);
+        verify(categoryMapRepository, never()).update(any());
     }
 
     @Test
@@ -105,14 +102,14 @@ class CategoryServiceTest {
         Category existingCategory = new Category(1L, "음료",1L,"음료설명");
         Category updatedCategory = new Category(1L, null,1L,"음료설명");
 
-        when(categoryRepository.findById(1L)).thenReturn(existingCategory);
-        when(categoryRepository.update(any(Category.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(categoryMapRepository.findById(1L)).thenReturn(existingCategory);
+        when(categoryMapRepository.update(any(Category.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Category result = categoryService.updateCategory(updatedCategory);
 
         assertEquals("음료", result.getName()); // 기존 이름 유지
-        verify(categoryRepository).findById(1L);
-        verify(categoryRepository).update(updatedCategory);
+        verify(categoryMapRepository).findById(1L);
+        verify(categoryMapRepository).update(updatedCategory);
     }
 
     @Test
@@ -120,19 +117,19 @@ class CategoryServiceTest {
     void deleteCategorySuccess() {
         Long categoryId = 1L;
         Category existingCategory = new Category(1L, "음료",1L,"음료설명");
-        when(categoryRepository.findById(categoryId)).thenReturn(existingCategory);
-        doNothing().when(categoryRepository).deleteById(categoryId);
+        when(categoryMapRepository.findById(categoryId)).thenReturn(existingCategory);
+        doNothing().when(categoryMapRepository).deleteById(categoryId);
 
         categoryService.deleteCategory(categoryId);
 
-        verify(categoryRepository, times(1)).deleteById(categoryId);
+        verify(categoryMapRepository, times(1)).deleteById(categoryId);
     }
 
     @Test
     @DisplayName("존재하지 않는 카테고리 삭제 시 NotFoundException 발생")
     void deleteCategoryNotFound() {
         Long categoryId = 1L;
-        when(categoryRepository.findById(categoryId)).thenReturn(null);
+        when(categoryMapRepository.findById(categoryId)).thenReturn(null);
 
         NotFoundException exception = assertThrows(
                 NotFoundException.class,
@@ -140,8 +137,8 @@ class CategoryServiceTest {
         );
 
         assertEquals("Category not found", exception.getMessage());
-        verify(categoryRepository).findById(categoryId);
-        verify(categoryRepository, never()).deleteById(categoryId);
+        verify(categoryMapRepository).findById(categoryId);
+        verify(categoryMapRepository, never()).deleteById(categoryId);
     }
 
 }

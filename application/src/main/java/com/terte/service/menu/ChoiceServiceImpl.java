@@ -2,6 +2,7 @@ package com.terte.service.menu;
 
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.menu.Choice;
+import com.terte.repository.menu.ChoiceMapRepository;
 import com.terte.repository.menu.ChoiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,13 +10,11 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ChoiceServiceImpl implements ChoiceService {
+    //private final ChoiceMapRepository choiceMapRepository;
     private final ChoiceRepository choiceRepository;
     @Override
     public Choice getChoiceById(Long id) {
-        Choice existingChoice = choiceRepository.findById(id);
-        if(existingChoice == null){
-            throw new NotFoundException("Choice Not Found");
-        }
+        Choice existingChoice = choiceRepository.findById(id).orElseThrow(() -> new NotFoundException("Choice Not Found"));
         return existingChoice;
     }
     @Override
@@ -25,10 +24,7 @@ public class ChoiceServiceImpl implements ChoiceService {
 
     @Override
     public Choice updateChoice(Choice choice) {
-        Choice existingChoice = choiceRepository.findById(choice.getId());
-        if(existingChoice == null){
-            throw new NotFoundException("Choice Not Found");
-        }
+        Choice existingChoice = choiceRepository.findById(choice.getId()).orElseThrow(() -> new NotFoundException("Choice Not Found"));
         if(choice.getName() == null){
             choice.setName(existingChoice.getName());
         }
@@ -40,10 +36,7 @@ public class ChoiceServiceImpl implements ChoiceService {
 
     @Override
     public void deleteChoice(Long id) {
-        Choice existingChoice = choiceRepository.findById(id);
-        if(existingChoice == null){
-            throw new NotFoundException("Choice Not Found");
-        }
+        choiceRepository.findById(id).orElseThrow(() -> new NotFoundException("Choice Not Found"));
         choiceRepository.deleteById(id);
     }
 }

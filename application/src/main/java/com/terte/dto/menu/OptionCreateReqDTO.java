@@ -13,4 +13,6 @@ public class OptionCreateReqDTO {
     private Boolean multipleSelection;
     @NotNull
     private Boolean required;
+    @NotNull
+    private Long menuId;
 }
