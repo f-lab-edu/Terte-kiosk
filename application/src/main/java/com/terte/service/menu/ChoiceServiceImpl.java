@@ -2,7 +2,6 @@ package com.terte.service.menu;
 
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.menu.Choice;
-import com.terte.repository.menu.ChoiceMapRepository;
 import com.terte.repository.menu.ChoiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +29,9 @@ public class ChoiceServiceImpl implements ChoiceService {
         }
         if(choice.getPrice() == null){
             choice.setPrice(existingChoice.getPrice());
+        }
+        if(choice.getMenuOption() == null){
+            choice.setMenuOption(existingChoice.getMenuOption());
         }
         return choiceRepository.save(choice);
     }

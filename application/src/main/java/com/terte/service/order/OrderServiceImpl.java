@@ -1,9 +1,13 @@
 package com.terte.service.order;
 
 import com.terte.common.exception.NotFoundException;
-import com.terte.entity.menu.Menu;
 import com.terte.entity.order.Order;
+import com.terte.entity.order.OrderItem;
+import com.terte.repository.order.OrderItemRepository;
+import com.terte.repository.order.OrderMapRepository;
 import com.terte.repository.order.OrderRepository;
+import com.terte.repository.order.SelectedOptionRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,33 +16,34 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+    //private final OrderMapRepository orderMapRepository;
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final SelectedOptionRepository selectedOptionRepository;
     @Override
     public List<Order> getAllOrders(Long storeId) {
-        return orderRepository.findByStoreId(storeId);
+        return orderRepository.findByStoreId(storeId).orElseThrow(() -> new NotFoundException("Order not found"));
     }
 
     @Override
     public Order getOrderById(Long id) {
-        Order existingOrder =  orderRepository.findById(id);
-        if (existingOrder == null) {
-            throw new NotFoundException("Order not found");
-        }else {
-            return existingOrder;
-        }
+        return orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Order not found"));
     }
 
     @Override
+    @Transactional
     public Order createOrder(Order order) {
+        List< OrderItem> orderItemList = order.getOrderItems();
+        orderItemList.forEach(orderItem -> {
+            selectedOptionRepository.saveAll(orderItem.getSelectedOptions());
+            orderItemRepository.save(orderItem);
+        });
         return orderRepository.save(order);
     }
 
     @Override
     public Order updateOrder(Order order) {
-        Order existingOrder = orderRepository.findById(order.getId());
-        if (existingOrder == null) {
-            throw new NotFoundException("Order not found");
-        }
+        Order existingOrder = orderRepository.findById(order.getId()).orElseThrow(() -> new NotFoundException("Order not found"));
         if(order.getOrderType() == null){
             order.setOrderType(existingOrder.getOrderType());
         }
@@ -56,10 +61,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void deleteOrder(Long id) {
-        Order existingOrder = orderRepository.findById(id);
-        if (existingOrder == null) {
-            throw new NotFoundException("Order not found");
-        }
+        orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Order not found"));
         orderRepository.deleteById(id);
 
     }

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
 import com.terte.dto.menu.ChoiceCreateReqDTO;
 import com.terte.dto.menu.ChoiceUpdateReqDTO;
+import com.terte.dto.menu.MenuCreateReqDTO;
+import com.terte.dto.menu.OptionCreateReqDTO;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -33,7 +35,7 @@ public class ChoiceControllerIntegrationTest {
     @Test
     @DisplayName("선택지를 생성한다.")
     void testCreateChoice() throws Exception {
-        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500);
+        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500,null);
         mockMvc.perform(post("/choices")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
@@ -45,7 +47,17 @@ public class ChoiceControllerIntegrationTest {
     @Test
     @DisplayName("선택지를 수정한다.")
     void testUpdateChoice() throws Exception {
-        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500);
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        String MenuId = mockMvc.perform(post("/menus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("샷 추가", false, true, Long.parseLong(MenuId));
+        String optionId = mockMvc.perform(post("/options")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(optionCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500, Long.parseLong(optionId));
         String res = mockMvc.perform(post("/choices")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
@@ -76,7 +88,17 @@ public class ChoiceControllerIntegrationTest {
     @Test
     @DisplayName("선택지를 삭제한다.")
     void testDeleteChoice() throws Exception {
-        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500);
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        String MenuId = mockMvc.perform(post("/menus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("샷 추가", false, true, Long.parseLong(MenuId));
+        String optionId = mockMvc.perform(post("/options")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(optionCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500, Long.parseLong(optionId));
         String res = mockMvc.perform(post("/choices")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(choiceCreateReqDTO))

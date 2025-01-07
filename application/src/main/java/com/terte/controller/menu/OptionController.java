@@ -5,7 +5,7 @@ import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.menu.*;
 import com.terte.entity.menu.Choice;
 import com.terte.entity.menu.Menu;
-import com.terte.entity.menu.Option;
+import com.terte.entity.menu.MenuOption;
 import com.terte.service.menu.MenuService;
 import com.terte.service.menu.OptionService;
 import jakarta.validation.Valid;
@@ -33,15 +33,15 @@ public class OptionController {
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createOption(@RequestBody @Valid OptionCreateReqDTO optionCreateReqDTO){
         Long menuId = optionCreateReqDTO.getMenuId();
         Menu menu = menuService.getMenuById(menuId);
-        Option option = new Option(
+        MenuOption menuOption = new MenuOption(
                 null,
                 optionCreateReqDTO.getName(),
                 optionCreateReqDTO.getMultipleSelection(),
                 optionCreateReqDTO.getRequired(),
                 null,
                 menu);
-        Option createdOption = optionService.createOption(option);
-        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdOption.getId()).build()));
+        MenuOption createdMenuOption = optionService.createOption(menuOption);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdMenuOption.getId()).build()));
     }
 
     /**
@@ -50,13 +50,13 @@ public class OptionController {
      */
     @PutMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateOption(@RequestBody @Valid OptionUpdateReqDTO optionUpdateReqDTO){
-        Option option = new Option(optionUpdateReqDTO.getId(),
+        MenuOption menuOption = new MenuOption(optionUpdateReqDTO.getId(),
                 optionUpdateReqDTO.getName(),
                 optionUpdateReqDTO.getMultipleSelection(),
                 optionUpdateReqDTO.getRequired(),
                 null,null);
-        Option updatedOption = optionService.updateOption(option);
-        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedOption.getId()).build()));
+        MenuOption updatedMenuOption = optionService.updateOption(menuOption);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedMenuOption.getId()).build()));
     }
 
     /**

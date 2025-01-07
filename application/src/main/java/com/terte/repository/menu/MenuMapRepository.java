@@ -3,7 +3,7 @@ package com.terte.repository.menu;
 import com.terte.entity.category.Category;
 import com.terte.entity.menu.Choice;
 import com.terte.entity.menu.Menu;
-import com.terte.entity.menu.Option;
+import com.terte.entity.menu.MenuOption;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,12 +25,12 @@ public class MenuMapRepository {
         Choice choice3 = new Choice(3L, "얼음 추가", 0,null);
         Choice choice4 = new Choice(4L, "얼음 빼기", 0,null);
 
-        Option option1 = new Option(1L, "음료 옵션", false, false, List.of(choice1, choice2),null);
-        Option option2 = new Option(2L, "빙수 옵션", true, true, List.of(choice3, choice4),null);
+        MenuOption menuOption1 = new MenuOption(1L, "음료 옵션", false, false, List.of(choice1, choice2),null);
+        MenuOption menuOption2 = new MenuOption(2L, "빙수 옵션", true, true, List.of(choice3, choice4),null);
 
-        menuStorage.put(1L, new Menu(1L, "아메리카노", 5000, category1, 1L, "https://image.com", "커피", List.of(option1)));
-        menuStorage.put(2L, new Menu(2L, "카페라떼", 6000, category1, 1L, "https://image.com", "우유", List.of(option1)));
-        menuStorage.put(3L, new Menu(3L, "아이스 아메리카노", 5500, category1, 1L, "https://image.com", "커피", List.of(option1)));
+        menuStorage.put(1L, new Menu(1L, "아메리카노", 5000, category1, 1L, "https://image.com", "커피", List.of(menuOption1)));
+        menuStorage.put(2L, new Menu(2L, "카페라떼", 6000, category1, 1L, "https://image.com", "우유", List.of(menuOption1)));
+        menuStorage.put(3L, new Menu(3L, "아이스 아메리카노", 5500, category1, 1L, "https://image.com", "커피", List.of(menuOption1)));
     }
 
     public List<Menu> findByStoreId(Long storeId) {

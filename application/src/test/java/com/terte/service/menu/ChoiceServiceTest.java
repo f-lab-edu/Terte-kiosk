@@ -1,14 +1,17 @@
 package com.terte.service.menu;
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.menu.Choice;
-import com.terte.repository.menu.ChoiceRepository;
+import com.terte.repository.menu.ChoiceMapRepository;
 
+import com.terte.repository.menu.ChoiceRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,8 +27,8 @@ public class ChoiceServiceTest {
     @Test
     @DisplayName("선택지 생성")
     void createChoice() {
-        Choice choice = new Choice(null, "샷 추가", 500);
-        Choice createdChoice = new Choice(1L, "샷 추가", 500);
+        Choice choice = new Choice(null, "샷 추가", 500, null);
+        Choice createdChoice = new Choice(1L, "샷 추가", 500, null);
         when(choiceRepository.save(choice)).thenReturn(createdChoice);
 
         Choice result = choiceService.createChoice(choice);
@@ -40,9 +43,9 @@ public class ChoiceServiceTest {
     @Test
     @DisplayName("존재하는 선택지 수정")
     void updateChoice() {
-        Choice choice = new Choice(1L, "샷 추가", 500);
-        Choice existingChoice = new Choice(1L, "샷 추가", 500);
-        when(choiceRepository.findById(choice.getId())).thenReturn(existingChoice);
+        Choice choice = new Choice(1L, "샷 추가", 500, null);
+        Choice existingChoice = new Choice(1L, "샷 추가", 500, null);
+        when(choiceRepository.findById(choice.getId())).thenReturn(Optional.of(existingChoice));
         when(choiceRepository.save(choice)).thenReturn(choice);
 
         Choice result = choiceService.updateChoice(choice);
@@ -57,8 +60,8 @@ public class ChoiceServiceTest {
     @Test
     @DisplayName("존재하지 않는 선택지 수정")
     void updateChoiceWithNonExistingChoice() {
-        Choice choice = new Choice(1L, "샷 추가", 500);
-        when(choiceRepository.findById(choice.getId())).thenReturn(null);
+        Choice choice = new Choice(1L, "샷 추가", 500, null);
+        when(choiceRepository.findById(choice.getId())).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> choiceService.updateChoice(choice));
         verify(choiceRepository, times(1)).findById(choice.getId());
@@ -68,10 +71,10 @@ public class ChoiceServiceTest {
     @DisplayName("선택지 삭제")
     void deleteChoice() {
         Long choiceId = 1L;
-        Choice existingChoice = new Choice(choiceId, "샷 추가", 500);
+        Choice existingChoice = new Choice(choiceId, "샷 추가", 500, null);
         when(choiceRepository
                 .findById(choiceId))
-                .thenReturn(existingChoice);
+                .thenReturn(Optional.of(existingChoice));
 
         choiceService.deleteChoice(choiceId);
         verify(choiceRepository, times(1)).deleteById(choiceId);
@@ -83,7 +86,7 @@ public class ChoiceServiceTest {
         Long choiceId = 1L;
         when(choiceRepository
                 .findById(choiceId))
-                .thenReturn(null);
+                .thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> choiceService.deleteChoice(choiceId));
         verify(choiceRepository, never()).deleteById(choiceId);
     }

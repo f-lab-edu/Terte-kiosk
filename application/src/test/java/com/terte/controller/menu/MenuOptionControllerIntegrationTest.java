@@ -2,6 +2,7 @@ package com.terte.controller.menu;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
+import com.terte.dto.menu.MenuCreateReqDTO;
 import com.terte.dto.menu.OptionCreateReqDTO;
 import com.terte.dto.menu.OptionUpdateReqDTO;
 import org.json.JSONObject;
@@ -22,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class OptionControllerIntegrationTest {
+public class MenuOptionControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -53,7 +54,12 @@ public class OptionControllerIntegrationTest {
     @Test
     @DisplayName("옵션을 생성한다")
     void testCreateOption() throws Exception{
-        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("샷 추가", false, true);
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        String MenuId = mockMvc.perform(post("/menus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("샷 추가", false, true, Long.parseLong(MenuId));
         mockMvc.perform(post("/options")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(optionCreateReqDTO)))
@@ -65,8 +71,12 @@ public class OptionControllerIntegrationTest {
     @Test
     @DisplayName("옵션을 생성할 때 필수 선택지가 없으면 400을 반환한다.")
     void testCreateOptionWithoutRequiredChoice() throws Exception{
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        String MenuId = mockMvc.perform(post("/menus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
 
-        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("샷 추가", null, false);
+        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("샷 추가", null, false, Long.parseLong(MenuId));
         mockMvc.perform(post("/options")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(optionCreateReqDTO)))
@@ -77,7 +87,12 @@ public class OptionControllerIntegrationTest {
     @Test
     @DisplayName("옵션을 수정할때 모든 필드가 존재하는 경우 수정된다.")
     void testUpdateOption() throws Exception{
-        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("new 옵션 추가", false, true);
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        String MenuId = mockMvc.perform(post("/menus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("new 옵션 추가", false, true, Long.parseLong(MenuId));
         String res = mockMvc.perform(post("/options")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(optionCreateReqDTO))).andReturn().getResponse().getContentAsString();
@@ -95,7 +110,12 @@ public class OptionControllerIntegrationTest {
     @Test
     @DisplayName("옵션을 수정할때 일부 필드만 존재하는 경우 나머지 필드는 기존 값으로 유지된다.")
     void testUpdateOptionWithPartialFields() throws Exception{
-        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("new 옵션 추가", false, true);
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        String MenuId = mockMvc.perform(post("/menus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("new 옵션 추가", false, true, Long.parseLong(MenuId));
         String res = mockMvc.perform(post("/options")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(optionCreateReqDTO))).andReturn().getResponse().getContentAsString();
@@ -135,7 +155,12 @@ public class OptionControllerIntegrationTest {
     @Test
     @DisplayName("옵션을 삭제한다")
     void testDeleteOption() throws Exception{
-        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("new 옵션 추가", false, true);
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        String MenuId = mockMvc.perform(post("/menus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("new 옵션 추가", false, true, Long.parseLong(MenuId));
         String res = mockMvc.perform(post("/options")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(optionCreateReqDTO))).andReturn().getResponse().getContentAsString();

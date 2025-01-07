@@ -5,23 +5,14 @@ import com.terte.common.enums.OrderType;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.order.*;
-import com.terte.entity.menu.Choice;
-import com.terte.entity.menu.Menu;
-import com.terte.entity.menu.Option;
 import com.terte.entity.order.Order;
-import com.terte.entity.order.OrderItem;
-import com.terte.entity.order.SelectedOption;
 import com.terte.service.helper.OrderServiceHelper;
-import com.terte.service.menu.ChoiceService;
-import com.terte.service.menu.MenuService;
-import com.terte.service.menu.OptionService;
 import com.terte.service.order.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orders")

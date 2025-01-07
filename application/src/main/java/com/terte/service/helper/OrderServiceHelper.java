@@ -5,14 +5,13 @@ import com.terte.dto.order.CreateOrderReqDTO;
 import com.terte.dto.order.OrderItemDTO;
 import com.terte.entity.menu.Choice;
 import com.terte.entity.menu.Menu;
-import com.terte.entity.menu.Option;
+import com.terte.entity.menu.MenuOption;
 import com.terte.entity.order.Order;
 import com.terte.entity.order.OrderItem;
 import com.terte.entity.order.SelectedOption;
 import com.terte.service.menu.ChoiceService;
 import com.terte.service.menu.MenuService;
 import com.terte.service.menu.OptionService;
-import com.terte.service.order.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -39,11 +38,18 @@ public class OrderServiceHelper {
         return orderItemDTOList.stream().map(orderItemDTO -> {
             Menu menu = menuService.getMenuById(orderItemDTO.getMenuId());
             List<SelectedOption> selectedOptionList = orderItemDTO.getSelectedOptions().stream().map(selectedOptionDTO -> {
-                Option option = optionService.getOptionById(selectedOptionDTO.getOptionId());
-                List<Choice> choices = selectedOptionDTO.getSelectedChoiceIds().stream().map(choiceService::getChoiceById).collect(Collectors.toList());
-                return new SelectedOption(null, option, choices);
+                MenuOption menuOption = optionService.getOptionById(selectedOptionDTO.getOptionId());
+                List<Long> choices = selectedOptionDTO.getSelectedChoiceIds();
+                isChoiceExist(choices);
+                return new SelectedOption(null, menuOption, choices);
             }).collect(Collectors.toList());
             return new OrderItem(null, menu, orderItemDTO.getQuantity(), selectedOptionList);
         }).toList();
+    }
+
+    private void isChoiceExist(List<Long> choiceIds) {
+        choiceIds.forEach(choiceId -> {
+            Choice choice = choiceService.getChoiceById(choiceId);
+        });
     }
 }

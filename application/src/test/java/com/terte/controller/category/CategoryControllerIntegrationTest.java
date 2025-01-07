@@ -40,11 +40,20 @@ class CategoryControllerIntegrationTest {
     @Test
     @DisplayName("카테고리 조회 시 모든 카테고리가 반환된다")
     void testGetAllCategories() throws Exception {
+        String newCategoryName = "New Category";
+        CategoryCreateReqDTO categoryCreateReqDTO = new CategoryCreateReqDTO(newCategoryName, "New Category Description");
+        String res = mockMvc.perform(post("/categories")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(categoryCreateReqDTO))).andReturn().getResponse().getContentAsString();
+        JSONObject jsonObject = new JSONObject(res);
+        Long targetId = jsonObject.getJSONObject("data").getLong("id");
+
+
         mockMvc.perform(get("/categories")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(101L))
-                .andExpect(jsonPath("$.data[0].name").value("음료"));
+                .andExpect(jsonPath("$.data[0].id").value(targetId))
+                .andExpect(jsonPath("$.data[0].name").value(newCategoryName));
     }
 
     @Test

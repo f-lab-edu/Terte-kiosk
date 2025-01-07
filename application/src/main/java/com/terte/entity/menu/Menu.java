@@ -23,10 +23,8 @@ public class Menu {
     private Long storeId;
     private String image;
     private String description;
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "menu_id")
-    private List<Option> options;
-
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "menu")
+    private List<MenuOption> menuOptions;
 }
 
 

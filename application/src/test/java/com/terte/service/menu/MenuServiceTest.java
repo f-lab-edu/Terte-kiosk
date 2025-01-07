@@ -2,12 +2,8 @@ package com.terte.service.menu;
 
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.category.Category;
-import com.terte.entity.menu.Choice;
 import com.terte.entity.menu.Menu;
-import com.terte.entity.menu.Option;
-import com.terte.repository.menu.ChoiceRepository;
-import com.terte.repository.menu.MenuRepository;
-import com.terte.repository.menu.OptionRepository;
+import com.terte.repository.menu.*;
 import com.terte.service.category.CategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -40,7 +37,7 @@ class MenuServiceTest {
     void getAllMenus() {
         Long storeId = 1L;
         List<Menu> menuList = List.of(new Menu(1L, "아메리카노", 10000, new Category(), storeId,"image", "아메리카노 설명", null), new Menu(2L, "카페라떼", 15000, new Category(), storeId, "image", "카페라떼 설명", null));
-        when(menuRepository.findByStoreId(storeId)).thenReturn(menuList);
+        when(menuRepository.findByStoreId(storeId)).thenReturn(Optional.of(menuList));
 
         List<Menu> result = menuService.getAllMenus(storeId, null);
 
@@ -56,12 +53,11 @@ class MenuServiceTest {
         Long categoryId = 1L;
         Category category = new Category(categoryId, "음료", storeId,"설명");
         List<Menu> menuList = List.of(new Menu(1L, "아메리카노", 10000, category, storeId,"image", "아메리카노 설명", null), new Menu(2L, "카페라떼", 15000, category, storeId, "image", "카페라떼 설명", null));
-        when(categoryService.getCategoryById(categoryId)).thenReturn(category);
-        when(menuRepository.findByCategory(category)).thenReturn(menuList);
+        when(menuRepository.findByCategoryId(category.getId())).thenReturn(Optional.of(menuList));
 
         List<Menu> result = menuService.getAllMenus(storeId, categoryId);
         assertEquals(2, result.size());
-        verify(menuRepository).findByCategory(category);
+        verify(menuRepository).findByCategoryId(category.getId());
 
 
     }
@@ -71,7 +67,7 @@ class MenuServiceTest {
     void getMenuById() {
         Long menuId = 1L;
         Menu menu = new Menu(menuId, "아메리카노", 10000, new Category(), 1L, "image", "아메리카노 설명", null);
-        when(menuRepository.findById(menuId)).thenReturn(menu);
+        when(menuRepository.findById(menuId)).thenReturn(Optional.of(menu));
 
         Menu result = menuService.getMenuById(menuId);
 
@@ -83,7 +79,7 @@ class MenuServiceTest {
     @DisplayName("메뉴 ID로 존재하지 않는 메뉴 조회")
     void getMenuByIdNotFound() {
         Long menuId = 1L;
-        when(menuRepository.findById(menuId)).thenReturn(null);
+        when(menuRepository.findById(menuId)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> menuService.getMenuById(menuId));
         verify(menuRepository,times(1)).findById(menuId);
@@ -113,7 +109,7 @@ class MenuServiceTest {
         Menu existingMenu = new Menu(1L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of());
         Menu updatedMenu = new Menu(1L, "아메리카노", 15000, null, storeId, "image", "아메리카노 설명", List.of());
 
-        when(menuRepository.findById(1L)).thenReturn(existingMenu);
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(existingMenu));
         when(menuRepository.save(updatedMenu)).thenReturn(updatedMenu);
 
 
@@ -134,7 +130,7 @@ class MenuServiceTest {
         Long storeId = 1L;
         Menu notExistingMenu = new Menu(2L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of());
 
-        when(menuRepository.findById(2L)).thenReturn(null);
+        when(menuRepository.findById(2L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> menuService.updateMenu(notExistingMenu));
         verify(menuRepository).findById(2L);
@@ -149,7 +145,7 @@ class MenuServiceTest {
         Menu partialUpdateMenu = new Menu(3L, null, 777, null, storeId, null, null,null);
         Menu expectedUpdatedMenu = new Menu(3L, "아메리카노", 777, null, storeId, "image", "아메리카노 설명", List.of());
 
-        when(menuRepository.findById(3L)).thenReturn(existingMenu);
+        when(menuRepository.findById(3L)).thenReturn(Optional.of(existingMenu));
         when(menuRepository.save(any())).thenReturn(expectedUpdatedMenu);
 
         Menu result = menuService.updateMenu(partialUpdateMenu);
@@ -166,20 +162,14 @@ class MenuServiceTest {
     @DisplayName("메뉴 삭제")
     void deleteMenu() {
         Long menuId = 3L;
-        Long optionId = 100L;
-        Long choiceId = 200L;
 
-        Choice existingChoice = new Choice(choiceId, "샷 추가", 500);
-        Option existingOption = new Option(optionId, "기존 옵션", false, false, List.of(existingChoice));
-        Menu existingMenu = new Menu(menuId, "아메리카노", 10000, null, 1L, "image", "아메리카노 설명", List.of(existingOption));
+        Menu existingMenu = new Menu(menuId, "아메리카노", 10000, null, 1L, "image", "아메리카노 설명", List.of());
 
-        when(menuRepository.findById(menuId)).thenReturn(existingMenu);
+        when(menuRepository.findById(menuId)).thenReturn(Optional.of(existingMenu));
 
         menuService.deleteMenu(menuId);
 
         verify(menuRepository,times(1)).deleteById(menuId);
-        verify(optionRepository,times(1)).deleteById(optionId);
-        verify(choiceRepository,times(1)).deleteById(choiceId);
     }
 
     @Test
@@ -187,7 +177,7 @@ class MenuServiceTest {
     void deleteMenuNotFound() {
         Long menuId = 3L;
 
-        when(menuRepository.findById(menuId)).thenReturn(null);
+        when(menuRepository.findById(menuId)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> menuService.deleteMenu(menuId));
 

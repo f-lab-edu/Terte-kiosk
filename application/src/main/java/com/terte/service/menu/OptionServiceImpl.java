@@ -2,8 +2,7 @@ package com.terte.service.menu;
 
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.menu.Choice;
-import com.terte.entity.menu.Option;
-import com.terte.repository.menu.OptionMapRepository;
+import com.terte.entity.menu.MenuOption;
 import com.terte.repository.menu.OptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,27 +16,30 @@ public class OptionServiceImpl implements OptionService {
     private final OptionRepository optionRepository;
 
     @Override
-    public Option getOptionById(Long id) {
+    public MenuOption getOptionById(Long id) {
         return optionRepository.findById(id).orElseThrow(() -> new NotFoundException("Option Not Found"));
     }
     @Override
-    public Option createOption(Option option) {
-        return optionRepository.save(option);
+    public MenuOption createOption(MenuOption menuOption) {
+        return optionRepository.save(menuOption);
     }
 
     @Override
-    public Option updateOption(Option option) {
-        Option existingOption = optionRepository.findById(option.getId()).orElseThrow(() -> new NotFoundException("Option Not Found"));
-        if(option.getName() == null){
-            option.setName(existingOption.getName());
+    public MenuOption updateOption(MenuOption menuOption) {
+        MenuOption existingMenuOption = optionRepository.findById(menuOption.getId()).orElseThrow(() -> new NotFoundException("Option Not Found"));
+        if(menuOption.getName() == null){
+            menuOption.setName(existingMenuOption.getName());
         }
-        if(option.getRequired() == null){
-            option.setRequired(existingOption.getRequired());
+        if(menuOption.getRequired() == null){
+            menuOption.setRequired(existingMenuOption.getRequired());
         }
-        if(option.getMultipleSelection() == null){
-            option.setMultipleSelection(existingOption.getMultipleSelection());
+        if(menuOption.getMultipleSelection() == null){
+            menuOption.setMultipleSelection(existingMenuOption.getMultipleSelection());
         }
-        return optionRepository.save(option);
+        if(menuOption.getChoices() == null){
+            menuOption.setChoices(existingMenuOption.getChoices());
+        }
+        return optionRepository.save(menuOption);
     }
 
     @Override
@@ -48,7 +50,7 @@ public class OptionServiceImpl implements OptionService {
 
     @Override
     public List<Choice> getChoicesById(Long id) {
-        Option existingOption = optionRepository.findById(id).orElseThrow(() -> new NotFoundException("Option Not Found"));
-        return existingOption.getChoices();
+        MenuOption existingMenuOption = optionRepository.findById(id).orElseThrow(() -> new NotFoundException("Option Not Found"));
+        return existingMenuOption.getChoices();
     }
 }

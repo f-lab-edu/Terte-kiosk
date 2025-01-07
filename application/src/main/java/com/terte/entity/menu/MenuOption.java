@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "menu_option")
-public class Option {
+public class MenuOption {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,8 +22,7 @@ public class Option {
     private Boolean multipleSelection;
     @NotNull
     private Boolean required;
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "option_id")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "menuOption")
     private List<Choice> choices;
     @ManyToOne
     @JoinColumn(name = "menu_id", nullable = false)

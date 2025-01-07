@@ -1,12 +1,9 @@
 package com.terte.service.menu;
 
 import com.terte.common.exception.NotFoundException;
-import com.terte.entity.category.Category;
-import com.terte.entity.menu.Choice;
 import com.terte.entity.menu.Menu;
-import com.terte.entity.menu.Option;
+import com.terte.entity.menu.MenuOption;
 import com.terte.repository.menu.*;
-import com.terte.service.category.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +14,6 @@ import java.util.List;
 public class MenuServiceImpl implements MenuService {
     //private final MenuMapRepository menuRepository;
     private final MenuRepository menuRepository;
-    private final CategoryService categoryService;
 
     @Override
     public List<Menu> getAllMenus(Long storeId, Long categoryId) {
@@ -57,8 +53,8 @@ public class MenuServiceImpl implements MenuService {
         if(menu.getCategory() == null){
             menu.setCategory(existingMenu.getCategory());
         }
-        if (menu.getOptions() == null){
-            menu.setOptions(existingMenu.getOptions());
+        if (menu.getMenuOptions() == null){
+            menu.setMenuOptions(existingMenu.getMenuOptions());
         }
 
         return menuRepository.save(menu);
@@ -71,9 +67,9 @@ public class MenuServiceImpl implements MenuService {
     }
 
 
-    public List<Option> getOptionsById(Long id){
+    public List<MenuOption> getOptionsById(Long id){
         Menu menu = menuRepository.findById(id).orElseThrow(() -> new NotFoundException("Menu not found"));
-        return menu.getOptions();
+        return menu.getMenuOptions();
     }
 
 }
