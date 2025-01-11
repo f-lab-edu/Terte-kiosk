@@ -1,6 +1,7 @@
 package com.terte.dto.menu;
 
 import com.terte.common.enums.MenuCategory;
+import com.terte.entity.category.Category;
 import lombok.*;
 
 @Getter
@@ -11,8 +12,9 @@ public class CategoryResDTO {
     private String name;
     private String description;
 
-    public CategoryResDTO(Long id, String name) {
-        this.id = id;
-        this.name = name;
+    public static CategoryResDTO from(Category category){
+        return new CategoryResDTO(category.getId(), category.getName(), category.getDescription());
     }
+
+
 }

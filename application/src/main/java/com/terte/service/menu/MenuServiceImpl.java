@@ -47,23 +47,7 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public Menu createMenu(Menu menu) {
-        if (menu.getOptions() != null) {
-            List<Option> savedOptions = new ArrayList<>();
-            menu.getOptions().forEach(option -> {
-                Option savedOption = createOption(option);
-                if (option.getChoices() != null) {
-                    List<Choice> savedChoices = new ArrayList<>();
-                    option.getChoices().forEach(choice -> {
-                        savedChoices.add(createChoice(choice));
-                    });
-                    savedOption.setChoices(savedChoices);
-                }
-                savedOptions.add(savedOption);
-            });
-            menu.setOptions(savedOptions);
-        }
         return menuRepository.save(menu);
-
     }
 
     @Override
@@ -91,36 +75,6 @@ public class MenuServiceImpl implements MenuService {
             menu.setOptions(existingMenu.getOptions());
         }
 
-
-
-        if (menu.getOptions() != null) {
-            List<Option> updatedOptions = new ArrayList<>();
-            menu.getOptions().forEach(option -> {
-                List<Choice> updatedChoices = new ArrayList<>();
-
-                if (option.getChoices() != null) {
-                    option.getChoices().forEach(choice -> {
-                        if (choice.getId() == null) {
-                            updatedChoices.add(createChoice(choice));
-                        } else {
-                            updatedChoices.add(updateChoice(choice));
-                        }
-                    });
-                }
-
-                Option updatedOption;
-                if (option.getId() == null) {
-                    updatedOption = createOption(option);
-                } else {
-                    updatedOption = updateOption(option);
-                }
-
-                updatedOption.setChoices(updatedChoices);
-                updatedOptions.add(updatedOption);
-            });
-
-            menu.setOptions(updatedOptions);
-        }
         return menuRepository.save(menu);
     }
 
@@ -185,6 +139,14 @@ public class MenuServiceImpl implements MenuService {
 
     public Choice createChoice(Choice choice) {
         return choiceRepository.save(choice);
+    }
+
+    public List<Option> getOptionsById(Long id){
+        Menu menu = menuRepository.findById(id);
+        if(menu == null){
+            throw new NotFoundException("Menu not found");
+        }
+        return menu.getOptions();
     }
 
 }

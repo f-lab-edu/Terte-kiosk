@@ -4,22 +4,32 @@ import com.terte.common.enums.OrderStatus;
 import com.terte.common.enums.OrderType;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
-import com.terte.dto.order.CreateOrderReqDTO;
-import com.terte.dto.order.OrderDetailResDTO;
-import com.terte.dto.order.OrderResDTO;
-import com.terte.dto.order.UpdateOrderReqDTO;
+import com.terte.dto.order.*;
+import com.terte.entity.menu.Choice;
+import com.terte.entity.menu.Menu;
+import com.terte.entity.menu.Option;
+import com.terte.entity.order.Order;
+import com.terte.entity.order.OrderItem;
+import com.terte.entity.order.SelectedOption;
+import com.terte.service.helper.OrderServiceHelper;
+import com.terte.service.menu.ChoiceService;
+import com.terte.service.menu.MenuService;
+import com.terte.service.menu.OptionService;
+import com.terte.service.order.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orders")
 @AllArgsConstructor
 public class OrderController {
 
-    //private final OrderService orderService;
+    private final OrderService orderService;
+    private final OrderServiceHelper orderServiceHelper;
     /**
      *
      * Get /orders
@@ -61,21 +71,24 @@ public class OrderController {
      */
     @PostMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createOrder(@RequestBody CreateOrderReqDTO createOrderReqDTO) {
-        //Long createdOrderId = orderService.createOrder(createOrderReqDTO);
-        Long createdOrderId = 2L;
-        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdOrderId).build()));
+        Long storeId = 1L;
+        Order order = orderServiceHelper.createOrder(createOrderReqDTO, storeId);
+        Order createdOrder = orderService.createOrder(order);
+
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdOrder.getId()).build()));
     }
     /**
      * PATCH /categories
      * 주문 수정
+     * 주문 상태, 주문 타입, 전화번호, 테이블 번호 수정
+     * 주문 메뉴 리스트의 수정은 불가능(삭제 후 재성성 해야한다.)
      */
     @PatchMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateOrder(@RequestBody UpdateOrderReqDTO updateOrderReqDTO) {
-        //Long updatedOrderId = orderService.updateOrder(updateOrderReqDTO);
-        if(updateOrderReqDTO.getId() != 1L) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updateOrderReqDTO.getId()).build()));
+        Long storeId = 1L;
+        Order order = new Order(updateOrderReqDTO.getId(), storeId, updateOrderReqDTO.getStatus(), null, updateOrderReqDTO.getOrderType(), updateOrderReqDTO.getPhoneNumber(), updateOrderReqDTO.getTableNumber());
+        Order updatedOrder = orderService.updateOrder(order);
+        return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedOrder.getId()).build()));
     }
     /**
      * DELETE /categories
@@ -83,10 +96,7 @@ public class OrderController {
      */
     @DeleteMapping("/{orderId}")
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> deleteOrder(@PathVariable Long orderId) {
-       // Long deletedOrderId = orderService.deleteOrder(orderId);
-        if(orderId != 1L) {
-            return ResponseEntity.notFound().build();
-        }
+        orderService.deleteOrder(orderId);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(orderId).build()));
     }
 }

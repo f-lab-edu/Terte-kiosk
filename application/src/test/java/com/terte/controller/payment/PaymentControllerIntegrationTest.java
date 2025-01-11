@@ -8,7 +8,11 @@ import com.terte.common.enums.PaymentMethod;
 import com.terte.common.enums.PaymentStatus;
 import com.terte.dto.menu.MenuResDTO;
 import com.terte.dto.order.CreateOrderReqDTO;
+import com.terte.dto.order.OrderItemDTO;
+import com.terte.dto.order.SelectedOptionDTO;
 import com.terte.dto.payment.PaymentReqDTO;
+import com.terte.entity.menu.Option;
+import com.terte.entity.order.SelectedOption;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
 class PaymentControllerIntegrationTest {
-
+    //TODO: PaymentController 통합 테스트 코드 수정
     @Autowired
     private MockMvc mockMvc;
 
@@ -48,11 +52,11 @@ class PaymentControllerIntegrationTest {
     @Test
     @DisplayName("결제 생성 시 성공하면 200 OK와 생성된 결제 ID를 반환한다 - 주문 및 결제")
     void testCreatePaymentOrderAndPaySuccess() throws Exception {
+        OrderItemDTO orderItemDTO = new OrderItemDTO(1L, 1,List.of(new SelectedOptionDTO()));
         CreateOrderReqDTO order = CreateOrderReqDTO.builder()
-                .menuList(
+                .orderItemList(
                         List.of(
-                                new MenuResDTO(1L, "menu1", 10000, 1L, "category1", "image1"),
-                                new MenuResDTO(2L, "menu2", 20000, 2L, "category2", "image2")
+                                orderItemDTO
                         )
                 )
                 .phoneNumber("010-1234-5678")

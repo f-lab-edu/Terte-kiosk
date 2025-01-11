@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderResDTO {
     private Long id;
-    private List<MenuResDTO> menuList;
+    private List<OrderItemDTO> orderItemList;
     private OrderType orderType;
     private OrderStatus status;
     private String orderTime;

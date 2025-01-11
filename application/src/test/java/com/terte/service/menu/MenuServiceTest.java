@@ -9,18 +9,18 @@ import com.terte.repository.menu.ChoiceRepository;
 import com.terte.repository.menu.MenuRepository;
 import com.terte.repository.menu.OptionRepository;
 import com.terte.service.category.CategoryService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
+@ExtendWith(MockitoExtension.class)
 class MenuServiceTest {
 
     @Mock
@@ -34,11 +34,6 @@ class MenuServiceTest {
 
     @InjectMocks
     MenuServiceImpl menuService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     @DisplayName("카테고리 ID없이 모든 메뉴 조회")
@@ -59,7 +54,7 @@ class MenuServiceTest {
     void getAllMenusByCategoryId() {
         Long storeId = 1L;
         Long categoryId = 1L;
-        Category category = new Category(categoryId, "음료", storeId);
+        Category category = new Category(categoryId, "음료", storeId,"설명");
         List<Menu> menuList = List.of(new Menu(1L, "아메리카노", 10000, category, storeId,"image", "아메리카노 설명", null), new Menu(2L, "카페라떼", 15000, category, storeId, "image", "카페라떼 설명", null));
         when(categoryService.getCategoryById(categoryId)).thenReturn(category);
         when(menuRepository.findByCategory(category)).thenReturn(menuList);
@@ -91,73 +86,25 @@ class MenuServiceTest {
         when(menuRepository.findById(menuId)).thenReturn(null);
 
         assertThrows(NotFoundException.class, () -> menuService.getMenuById(menuId));
-        verify(menuRepository).findById(menuId);
+        verify(menuRepository,times(1)).findById(menuId);
     }
 
     @Test
-    @DisplayName("옵션과 초이스 없이 메뉴만 생성")
+    @DisplayName("메뉴 생성")
     void createMenu() {
         Long storeId = 1L;
         Long categoryId = 1L;
-        Category category = new Category(categoryId, "음료", storeId);
+        Category category = new Category(categoryId, "음료", storeId, "설명");
         Menu menu = new Menu(null, "아메리카노", 10000, category, storeId, "image", "아메리카노 설명", null);
-        when(categoryService.getCategoryById(categoryId)).thenReturn(category);
         when(menuRepository.save(menu)).thenReturn(menu);
 
         Menu result = menuService.createMenu(menu);
 
         assertNotNull(result);
         assertEquals("아메리카노", result.getName());
-        verify(menuRepository).save(menu);
+        verify(menuRepository,times(1)).save(menu);
     }
 
-    @Test
-    @DisplayName("옵션만 포함된 메뉴 생성")
-    void createMenuWithOptions() {
-        Long storeId = 1L;
-        Long categoryId = 1L;
-        Category category = new Category(categoryId, "음료", storeId);
-        List<Option> optionList = List.of(new Option(null, "샷 추가", false, false, null));
-        Menu menu = new Menu(null, "아메리카노", 10000, category, storeId, "image", "아메리카노 설명", optionList);
-        when(categoryService.getCategoryById(categoryId)).thenReturn(category);
-        when(optionRepository.save(optionList.get(0))).thenReturn(optionList.get(0));
-        when(menuRepository.save(menu)).thenReturn(menu);
-
-        Menu result = menuService.createMenu(menu);
-
-        assertNotNull(result);
-        assertEquals("아메리카노", result.getName());
-        verify(menuRepository).save(menu);
-        verify(optionRepository).save(optionList.get(0));
-
-    }
-
-    @Test
-    @DisplayName("옵션과 초이스가 포함된 메뉴 생성")
-    void createMenuWithOptionsAndChoices() {
-        Long storeId = 1L;
-        Long categoryId = 1L;
-        Category category = new Category(categoryId, "음료", storeId);
-        List<Choice> newChoiceList = List.of(new Choice(null, "샷 추가", 500));
-        List<Option> newOptionList = List.of(new Option(null, "샷 추가", false, false, newChoiceList));
-        List<Choice> createdChoiceList = List.of(new Choice(1L, "샷 추가", 500));
-        List<Option> createdOptionList = List.of(new Option(1L, "샷 추가", false, false, createdChoiceList));
-
-        Menu menu = new Menu(null, "아메리카노", 10000, category, storeId, "image", "아메리카노 설명", newOptionList);
-        when(categoryService.getCategoryById(categoryId)).thenReturn(category);
-        when(optionRepository.save(any())).thenReturn(createdOptionList.get(0));
-        when(choiceRepository.save(any())).thenReturn(createdChoiceList.get(0));
-        when(menuRepository.save(menu)).thenReturn(menu);
-
-        Menu result = menuService.createMenu(menu);
-
-        assertNotNull(result);
-        assertEquals("아메리카노", result.getName());
-        assertNotNull(result.getOptions().get(0).getId());
-        verify(menuRepository).save(menu);
-        verify(optionRepository).save(createdOptionList.get(0));
-        verify(choiceRepository).save(createdChoiceList.get(0));
-    }
 
     @Test
     @DisplayName("존재하는 메뉴 수정")
@@ -177,6 +124,8 @@ class MenuServiceTest {
         assertEquals(15000, result.getPrice());
         verify(menuRepository).findById(1L);
         verify(menuRepository).save(updatedMenu);
+        verify(optionRepository, never()).save(any());
+        verify(choiceRepository, never()).save(any());
     }
 
     @Test
@@ -212,98 +161,6 @@ class MenuServiceTest {
         verify(menuRepository).save(any());
     }
 
-    @Test
-    @DisplayName("메뉴에 옵션이 추가된 경우")
-    void updateMenuWithNewOptions() {
-        // Arrange
-        Long storeId = 1L;
-        Menu existingMenu = new Menu(3L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of());
-        Option newOption = new Option(null, "추가 옵션", true, false, null);
-
-        Menu updatedMenu = new Menu(3L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of(newOption));
-        Option savedOption = new Option(100L, "추가 옵션", true, false, null);
-
-        when(menuRepository.findById(3L)).thenReturn(existingMenu);
-        when(optionRepository.save(newOption)).thenReturn(savedOption);
-        when(menuRepository.save(updatedMenu)).thenReturn(updatedMenu);
-
-        // Act
-        Menu result = menuService.updateMenu(updatedMenu);
-
-        // Assert
-        assertEquals(1, result.getOptions().size());
-        assertEquals("추가 옵션", result.getOptions().get(0).getName());
-        assertNotNull(result.getOptions().get(0).getId());
-        verify(optionRepository).save(newOption);
-        verify(menuRepository).save(updatedMenu);
-    }
-
-    @Test
-    @DisplayName("메뉴에 옵션이 업데이트 된 경우")
-    void updateMenuWithUpdatedOptions() {
-        // Arrange
-        Long storeId = 1L;
-        Option existingOption = new Option(100L, "기존 옵션", true, false, null);
-        Menu existingMenu = new Menu(3L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of(existingOption));
-
-        Option updatedOption = new Option(100L, "업데이트된 옵션", true, false, null);
-        Menu updatedMenu = new Menu(3L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of(updatedOption));
-
-        when(menuRepository.findById(3L)).thenReturn(existingMenu);
-        when(optionRepository.findById(100L)).thenReturn(existingOption);
-        when(optionRepository.save(updatedOption)).thenReturn(updatedOption);
-        when(menuRepository.save(updatedMenu)).thenReturn(updatedMenu);
-
-        // Act
-        Menu result = menuService.updateMenu(updatedMenu);
-
-        // Assert
-        assertEquals(1, result.getOptions().size());
-        assertEquals("업데이트된 옵션", result.getOptions().get(0).getName());
-        verify(optionRepository).findById(100L);
-        verify(optionRepository).save(updatedOption);
-        verify(menuRepository).save(updatedMenu);
-    }
-
-
-    @Test
-    @DisplayName("메뉴에 초이스가 추가된 경우")
-    void updateMenuWithNewChoices() {
-        // Arrange
-        Long storeId = 1L;
-        Choice newChoice = new Choice(null, "샷 추가", 500);
-        Choice savedChoice = new Choice(200L, "샷 추가", 500);
-        Option existingOption = new Option(100L, "기존 옵션", false, false, List.of());
-        Option updatedOption = new Option(100L, "기존 옵션", false, false, List.of(savedChoice));
-        Option updateOption = new Option(100L, "기존 옵션", false, false, List.of(newChoice));
-        Menu existingMenu = new Menu(3L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of(existingOption));
-        Menu updateMenu = new Menu(3L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of(updateOption));
-        Menu updatedMenu = new Menu(3L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of(updatedOption));
-
-        when(menuRepository.findById(3L)).thenReturn(existingMenu);
-        when(optionRepository.findById(100L)).thenReturn(existingOption);
-        when(choiceRepository.save(newChoice)).thenReturn(savedChoice);
-        when(optionRepository.save(updateOption)).thenReturn(updatedOption);
-        when(menuRepository.save(any())).thenReturn(updatedMenu);
-
-        Menu result = menuService.updateMenu(updateMenu);
-
-        assertNotNull(result);
-        assertEquals(1, result.getOptions().size());
-        assertEquals(1, result.getOptions().get(0).getChoices().size());
-        assertEquals("샷 추가", result.getOptions().get(0).getChoices().get(0).getName());
-        assertEquals(200L, result.getOptions().get(0).getChoices().get(0).getId());
-
-        verify(choiceRepository).save(newChoice);
-        verify(optionRepository).save(existingOption);
-        verify(menuRepository).save(any());
-    }
-
-
-    @Test
-    @DisplayName("메뉴에 초이스가 업데이트 된 경우")
-    void updateMenuWithUpdatedChoices() {
-    }
 
     @Test
     @DisplayName("메뉴 삭제")
@@ -320,9 +177,9 @@ class MenuServiceTest {
 
         menuService.deleteMenu(menuId);
 
-        verify(menuRepository).deleteById(menuId);
-        verify(optionRepository).deleteById(optionId);
-        verify(choiceRepository).deleteById(choiceId);
+        verify(menuRepository,times(1)).deleteById(menuId);
+        verify(optionRepository,times(1)).deleteById(optionId);
+        verify(choiceRepository,times(1)).deleteById(choiceId);
     }
 
     @Test

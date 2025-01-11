@@ -1,7 +1,5 @@
 package com.terte.service.category;
 
-import com.terte.dto.menu.CreateCategoryReqDTO;
-import com.terte.dto.menu.UpdateCategoryReqDTO;
 import com.terte.entity.category.Category;
 import org.springframework.stereotype.Service;
 

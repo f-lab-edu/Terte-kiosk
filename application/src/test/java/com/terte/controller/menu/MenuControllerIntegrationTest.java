@@ -3,9 +3,10 @@ package com.terte.controller.menu;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
-import com.terte.dto.menu.CreateMenuReqDTO;
+import com.terte.dto.menu.MenuCreateReqDTO;
 import com.terte.dto.menu.MenuDetailResDTO;
-import com.terte.dto.menu.UpdateMenuReqDTO;
+import com.terte.dto.menu.MenuUpdateReqDTO;
+import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -25,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class MenuControllerIntegrationTest {
 
     @Autowired
@@ -123,12 +123,11 @@ class MenuControllerIntegrationTest {
 
     @Test
     @DisplayName("메뉴가 성공적으로 생성되고 성공 후, 생성된 ID를 반환한다")
-    @Order(1)
     void testCreateMenuSuccess() throws Exception {
-        CreateMenuReqDTO createMenuReqDTO = new CreateMenuReqDTO("New Menu", "New Menu Description", 1000, 1L, "image.jpg", null);
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
         mockMvc.perform(post("/menus")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createMenuReqDTO)))
+                        .content(objectMapper.writeValueAsString(menuCreateReqDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(4L));
     }
@@ -136,21 +135,27 @@ class MenuControllerIntegrationTest {
     @Test
     @DisplayName("메뉴 생성 시 요청이 필수값이 누락된 경우 400 에러를 반환한다")
     void testCreateMenuMissingRequiredField() throws Exception {
-        CreateMenuReqDTO createMenuReqDTO = new CreateMenuReqDTO();
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO();
 
         mockMvc.perform(post("/menus")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createMenuReqDTO)))
+                        .content(objectMapper.writeValueAsString(menuCreateReqDTO)))
                 .andExpect(status().isBadRequest());
     }
 
 
     @Test
     @DisplayName("메뉴 수정 시 성공하면 200 OK와 수정된 메뉴 ID를 반환한다")
-    @Order(2)
     void testUpdateMenuSuccess() throws Exception {
-        Long targetId = 4L;
-        UpdateMenuReqDTO updateMenuReqDTO = new UpdateMenuReqDTO(targetId, "Updated Menu", "Updated Menu Description", 2000, 1L, "updated-image.jpg", null);
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        String res = mockMvc.perform(post("/menus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        JSONObject jsonObject = new JSONObject(res);
+
+        Long targetId = jsonObject.getJSONObject("data").getLong("id");
+        MenuUpdateReqDTO updateMenuReqDTO = new MenuUpdateReqDTO(targetId, "Updated Menu", "Updated Menu Description", 2000, 101L, "updated-image.jpg");
 
         mockMvc.perform(patch("/menus")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -162,12 +167,20 @@ class MenuControllerIntegrationTest {
 
     @Test
     @DisplayName("메뉴 삭제 시 성공하면 200 OK와 삭제된 메뉴 ID를 반환한다")
-    @Order(3)
     void testDeleteMenuSuccess() throws Exception {
-        mockMvc.perform(delete("/menus/4")
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        String res = mockMvc.perform(post("/menus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
+
+        JSONObject jsonObject = new JSONObject(res);
+
+        Long targetId = jsonObject.getJSONObject("data").getLong("id");
+        String deleteReqUrl = "/menus/" + targetId;
+        mockMvc.perform(delete(deleteReqUrl)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(4L));
+                .andExpect(jsonPath("$.data.id").value(targetId));
     }
 
     @Test

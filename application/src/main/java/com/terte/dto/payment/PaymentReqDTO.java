@@ -21,4 +21,6 @@ public class PaymentReqDTO {
     @Min(0)
     private Long orderId;
     private CreateOrderReqDTO order;
+
+
 }
