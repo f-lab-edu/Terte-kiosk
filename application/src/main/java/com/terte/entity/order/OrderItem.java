@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -20,15 +21,26 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "menu_id", nullable = false)
-    private Menu menu;
+    private Long menuId;
 
     @NotNull
     @Column(nullable = false)
     private Integer quantity;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_item_id") // 단방향 연관 관계
-    private List<SelectedOption> selectedOptions;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "orderItem")
+    private List<SelectedOption> selectedOptions = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+    public void addSelectedOption(SelectedOption selectedOption) {
+        this.selectedOptions.add(selectedOption);
+        selectedOption.setOrderItem(this);
+    }
+
+    public void removeSelectedOption(SelectedOption selectedOption) {
+        this.selectedOptions.remove(selectedOption);
+        selectedOption.setOrderItem(null);
+    }
 }

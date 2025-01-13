@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "menu_option")
+@Table
 public class MenuOption {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +25,6 @@ public class MenuOption {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "menuOption")
     private List<Choice> choices;
     @ManyToOne
-    @JoinColumn(name = "menu_id", nullable = false)
+    @JoinColumn(name = "menu_id")
     private Menu menu;
 }

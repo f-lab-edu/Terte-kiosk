@@ -19,6 +19,6 @@ public class Choice {
     @NotNull
     private Integer price;
     @ManyToOne
-    @JoinColumn(name = "menu_option_id", nullable = false)
+    @JoinColumn(name = "menu_option_id")
     MenuOption menuOption;
 }

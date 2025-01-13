@@ -2,7 +2,6 @@ package com.terte.service.category;
 
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.category.Category;
-import com.terte.repository.category.CategoryMapRepository;
 import com.terte.repository.category.CategoryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +29,7 @@ class CategoryServiceTest {
     void getAllCategories() {
         Long storeId = 1L;
         List<Category> categories = Arrays.asList(new Category(1L, "음료", 1L,"음료설명"), new Category(2L, "빙수", 1L,"빙수설명"));
-        when(categoryRepository.findByStoreId(storeId)).thenReturn(Optional.of(categories));
+        when(categoryRepository.findByStoreId(storeId)).thenReturn(categories);
 
         List<Category> result = categoryService.getAllCategories(storeId);
 

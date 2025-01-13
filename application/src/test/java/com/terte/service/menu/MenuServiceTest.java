@@ -37,7 +37,7 @@ class MenuServiceTest {
     void getAllMenus() {
         Long storeId = 1L;
         List<Menu> menuList = List.of(new Menu(1L, "아메리카노", 10000, new Category(), storeId,"image", "아메리카노 설명", null), new Menu(2L, "카페라떼", 15000, new Category(), storeId, "image", "카페라떼 설명", null));
-        when(menuRepository.findByStoreId(storeId)).thenReturn(Optional.of(menuList));
+        when(menuRepository.findByStoreId(storeId)).thenReturn(menuList);
 
         List<Menu> result = menuService.getAllMenus(storeId, null);
 
@@ -53,7 +53,7 @@ class MenuServiceTest {
         Long categoryId = 1L;
         Category category = new Category(categoryId, "음료", storeId,"설명");
         List<Menu> menuList = List.of(new Menu(1L, "아메리카노", 10000, category, storeId,"image", "아메리카노 설명", null), new Menu(2L, "카페라떼", 15000, category, storeId, "image", "카페라떼 설명", null));
-        when(menuRepository.findByCategoryId(category.getId())).thenReturn(Optional.of(menuList));
+        when(menuRepository.findByCategoryId(category.getId())).thenReturn(menuList);
 
         List<Menu> result = menuService.getAllMenus(storeId, categoryId);
         assertEquals(2, result.size());

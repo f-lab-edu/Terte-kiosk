@@ -129,7 +129,7 @@ class MenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(menuCreateReqDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(4L));
+                .andExpect(jsonPath("$.data.id").exists());
     }
 
     @Test

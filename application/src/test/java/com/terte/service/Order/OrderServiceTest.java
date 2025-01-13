@@ -22,8 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +42,7 @@ public class OrderServiceTest {
     void getAllOrders() {
         Long storeId = 1L;
         List<Order> orderList = List.of(new Order(1L, storeId, OrderStatus.ORDERED,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1), new Order(2L, storeId, OrderStatus.ORDERED,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1));
-        when(orderRepository.findByStoreId(storeId)).thenReturn(Optional.of(orderList));
+        when(orderRepository.findByStoreId(storeId)).thenReturn(orderList);
 
         List<Order> result = orderService.getAllOrders(storeId);
 
@@ -77,17 +76,36 @@ public class OrderServiceTest {
     @Test
     @DisplayName("주문 생성")
     void createOrder() {
-        List<SelectedOption> selectedOptions = List.of(new SelectedOption(1L,new MenuOption(),List.of(1L)));
-        List <OrderItem> orderItems = List.of(new OrderItem(1L,new Menu(),2,selectedOptions));
-        Order order = new Order(1L, 1L, OrderStatus.ORDERED,orderItems, OrderType.DELIVERY, "010-1234-5678",  1);
-        when(orderRepository.save(order)).thenReturn(order);
-        when(orderItemRepository.save(orderItems.get(0))).thenReturn(orderItems.get(0));
-        when(selectedOptionRepository.saveAll(selectedOptions)).thenReturn(selectedOptions);
+        // Given
+        SelectedOption selectedOption = new SelectedOption();
+        selectedOption.setId(null);
+        selectedOption.setMenuOptionId(1L);
+        selectedOption.setSelectedChoiceIds(List.of(1L));
 
+        OrderItem orderItem = new OrderItem();
+        orderItem.setId(null);
+        orderItem.setMenuId(1L);
+        orderItem.setQuantity(2);
+        orderItem.addSelectedOption(selectedOption);
+
+        Order order = new Order();
+        order.setId(null);
+        order.setStoreId(1L);
+        order.setStatus(OrderStatus.ORDERED);
+        order.setOrderType(OrderType.DELIVERY);
+        order.setPhoneNumber("010-1234-5678");
+        order.setTableNumber(1);
+        order.addOrderItem(orderItem);
+
+        when(orderRepository.save(order)).thenReturn(order);
+
+        // When
         Order result = orderService.createOrder(order);
 
+        // Then
+        assertNotNull(result);
         assertEquals(order, result);
-        verify(orderRepository,times(1)).save(order);
+        verify(orderRepository, times(1)).save(order);
     }
 
     @Test

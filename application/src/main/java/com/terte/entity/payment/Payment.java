@@ -25,7 +25,6 @@ public class Payment {
     private PaymentMethod paymentMethod;
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
-    @OneToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+
+    private Long orderId;
 }

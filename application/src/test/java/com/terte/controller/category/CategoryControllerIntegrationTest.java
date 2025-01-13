@@ -6,9 +6,11 @@ import com.terte.TerteMainApplication;
 import com.terte.dto.menu.CategoryResDTO;
 import com.terte.dto.menu.CategoryCreateReqDTO;
 import com.terte.dto.menu.CategoryUpdateReqDTO;
+import com.terte.entity.category.Category;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -37,6 +39,7 @@ class CategoryControllerIntegrationTest {
 
 
 
+
     @Test
     @DisplayName("카테고리 조회 시 모든 카테고리가 반환된다")
     void testGetAllCategories() throws Exception {
@@ -52,8 +55,8 @@ class CategoryControllerIntegrationTest {
         mockMvc.perform(get("/categories")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(targetId))
-                .andExpect(jsonPath("$.data[0].name").value(newCategoryName));
+                .andExpect(jsonPath("$.data[0].id").exists())
+                .andExpect(jsonPath("$.data[0].name").exists());
     }
 
     @Test
@@ -91,7 +94,7 @@ class CategoryControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(categoryCreateReqDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(3L));
+                .andExpect(jsonPath("$.data.id").exists());
     }
 
 

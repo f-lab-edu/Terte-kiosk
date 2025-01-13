@@ -52,7 +52,7 @@ public class PaymentController {
                 return ResponseEntity.badRequest().build();
             }
             Order order = orderService.getOrderById(orderId);
-            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, order);
+            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, order.getId());
             createdPayment = paymentService.createPayment(payment);
         } else if (paymentRequest.getPaymentCreateType() == PaymentCreateType.ORDER_AND_PAY){
             CreateOrderReqDTO createOrderReqDTO =  paymentRequest.getOrder();
@@ -61,7 +61,7 @@ public class PaymentController {
             }
             Order saveTargetOrder = orderServiceHelper.createOrder(createOrderReqDTO, storeId);
             Order savedOrder = orderService.createOrder(saveTargetOrder);
-            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, savedOrder);
+            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, savedOrder.getId());
 
             createdPayment = paymentService.createPayment(payment);
         }

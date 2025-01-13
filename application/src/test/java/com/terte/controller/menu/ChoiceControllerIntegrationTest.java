@@ -35,7 +35,7 @@ public class ChoiceControllerIntegrationTest {
     @Test
     @DisplayName("선택지를 생성한다.")
     void testCreateChoice() throws Exception {
-        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500,null);
+        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500,1L);
         mockMvc.perform(post("/choices")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(choiceCreateReqDTO))

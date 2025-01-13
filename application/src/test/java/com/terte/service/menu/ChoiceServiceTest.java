@@ -1,7 +1,6 @@
 package com.terte.service.menu;
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.menu.Choice;
-import com.terte.repository.menu.ChoiceMapRepository;
 
 import com.terte.repository.menu.ChoiceRepository;
 import org.junit.jupiter.api.DisplayName;

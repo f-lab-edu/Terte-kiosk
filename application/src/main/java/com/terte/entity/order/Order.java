@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -16,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "Orders")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,9 +31,8 @@ public class Order {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
-    private List<OrderItem> orderItems;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "order")
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -42,6 +43,14 @@ public class Order {
 
     private Integer tableNumber;
 
+    public void addOrderItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        orderItem.setOrder(this);
+    }
 
+    public void removeOrderItem(OrderItem orderItem) {
+        this.orderItems.remove(orderItem);
+        orderItem.setOrder(null);
+    }
 
 }
