@@ -7,5 +7,4 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OptionRepository extends JpaRepository<MenuOption, Long> {
-    Optional<List<MenuOption>> findByMenuId(Long menuId);
 }

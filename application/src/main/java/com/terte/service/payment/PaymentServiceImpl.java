@@ -4,7 +4,6 @@ import com.terte.common.enums.PaymentStatus;
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.payment.Payment;
 
-import com.terte.repository.payment.PaymentMapRepository;
 import com.terte.repository.payment.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,11 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     @Override
     public List<Payment> getAllPayments(Long storeId) {
-        return paymentRepository.findByStoreId(storeId).orElseThrow(() -> new NotFoundException("Payment not found"));
+        List<Payment> payments = paymentRepository.findByStoreId(storeId);
+        if(payments.isEmpty()){
+            throw new NotFoundException("Payment not found");
+        }
+        return payments;
     }
 
     @Override

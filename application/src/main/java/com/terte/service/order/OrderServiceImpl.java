@@ -4,7 +4,6 @@ import com.terte.common.exception.NotFoundException;
 import com.terte.entity.order.Order;
 import com.terte.entity.order.OrderItem;
 import com.terte.repository.order.OrderItemRepository;
-import com.terte.repository.order.OrderMapRepository;
 import com.terte.repository.order.OrderRepository;
 import com.terte.repository.order.SelectedOptionRepository;
 import jakarta.transaction.Transactional;
@@ -22,7 +21,11 @@ public class OrderServiceImpl implements OrderService {
     private final SelectedOptionRepository selectedOptionRepository;
     @Override
     public List<Order> getAllOrders(Long storeId) {
-        return orderRepository.findByStoreId(storeId).orElseThrow(() -> new NotFoundException("Order not found"));
+        List<Order> orders = orderRepository.findByStoreId(storeId);
+        if(orders.isEmpty()){
+            throw new NotFoundException("Order not found");
+        }
+        return orders;
     }
 
     @Override
@@ -33,11 +36,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public Order createOrder(Order order) {
-        List< OrderItem> orderItemList = order.getOrderItems();
-        orderItemList.forEach(orderItem -> {
-            selectedOptionRepository.saveAll(orderItem.getSelectedOptions());
-            orderItemRepository.save(orderItem);
-        });
         return orderRepository.save(order);
     }
 

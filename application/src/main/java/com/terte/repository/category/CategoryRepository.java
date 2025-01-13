@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
-    Optional<List<Category>> findByStoreId(Long storeId);
+    List<Category> findByStoreId(Long storeId);
 }

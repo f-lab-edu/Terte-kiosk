@@ -19,9 +19,17 @@ public class MenuServiceImpl implements MenuService {
     public List<Menu> getAllMenus(Long storeId, Long categoryId) {
 
         if(categoryId == null){
-            return menuRepository.findByStoreId(storeId).orElseThrow(() -> new NotFoundException("Menu not found"));
+            List<Menu> menus = menuRepository.findByStoreId(storeId);
+            if(menus.isEmpty()){
+                throw new NotFoundException("Menu not found");
+            }
+            return menus;
         } else {
-            return menuRepository.findByCategoryId(categoryId).orElseThrow(() -> new NotFoundException("Menu not found"));
+            List<Menu> menus = menuRepository.findByCategoryId(categoryId);
+            if(menus.isEmpty()){
+                throw new NotFoundException("Menu not found");
+            }
+            return menus;
         }
     }
 

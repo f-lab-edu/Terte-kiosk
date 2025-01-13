@@ -2,7 +2,6 @@ package com.terte.service.category;
 
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.category.Category;
-import com.terte.repository.category.CategoryMapRepository;
 import com.terte.repository.category.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,11 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     @Override
     public List<Category> getAllCategories(Long StoreId) {
-        return categoryRepository.findByStoreId(StoreId).orElseThrow(() -> new NotFoundException("Category not found"));
+        List<Category> categories = categoryRepository.findByStoreId(StoreId);
+        if(categories.isEmpty()){
+            throw new NotFoundException("Category not found");
+        }
+        return categories;
     }
 
     @Override
