@@ -1,7 +1,6 @@
 package com.terte.entity.order;
 
-import com.terte.entity.menu.Choice;
-import com.terte.entity.menu.Option;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,8 +11,19 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
 public class SelectedOption {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Option option;
-    private List<Choice> selectedChoices;
+
+    private Long menuOptionId;
+
+    @ElementCollection
+    @CollectionTable(name = "selected_option_choice_ids", joinColumns = @JoinColumn(name = "selected_option_id"))
+    private List<Long> selectedChoiceIds;
+
+    @ManyToOne
+    @JoinColumn(name = "order_item_id")
+    private OrderItem orderItem;
 }

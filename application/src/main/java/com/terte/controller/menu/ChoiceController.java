@@ -3,20 +3,15 @@ package com.terte.controller.menu;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.menu.ChoiceCreateReqDTO;
-import com.terte.dto.menu.ChoiceResDTO;
 import com.terte.dto.menu.ChoiceUpdateReqDTO;
-import com.terte.dto.menu.OptionCreateReqDTO;
 import com.terte.entity.menu.Choice;
+import com.terte.entity.menu.MenuOption;
 import com.terte.service.menu.ChoiceService;
-import com.terte.service.menu.MenuService;
 import com.terte.service.menu.OptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/choices")
@@ -31,10 +26,13 @@ public class ChoiceController {
      */
     @PostMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createOption(@RequestBody @Valid ChoiceCreateReqDTO choiceCreateReqDTO){
+        Long optionId = choiceCreateReqDTO.getOptionId();
+        MenuOption menuOption = optionService.getOptionById(optionId);
         Choice choice = new Choice(
                 null,
                 choiceCreateReqDTO.getName(),
-                choiceCreateReqDTO.getPrice()
+                choiceCreateReqDTO.getPrice(),
+                menuOption
         );
         Choice createdChoice = choiceService.createChoice(choice);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdChoice.getId()).build()));
@@ -49,7 +47,8 @@ public class ChoiceController {
         Choice choice = new Choice(
                 choiceUpdateReqDTO.getId(),
                 choiceUpdateReqDTO.getName(),
-                choiceUpdateReqDTO.getPrice()
+                choiceUpdateReqDTO.getPrice(),
+                null
         );
         Choice updatedChoice = choiceService.updateChoice(choice);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedChoice.getId()).build()));

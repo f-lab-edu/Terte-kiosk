@@ -6,14 +6,19 @@ import com.terte.TerteMainApplication;
 import com.terte.dto.menu.MenuCreateReqDTO;
 import com.terte.dto.menu.MenuDetailResDTO;
 import com.terte.dto.menu.MenuUpdateReqDTO;
+import jakarta.transaction.Transactional;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
 class MenuControllerIntegrationTest {
 
     @Autowired
@@ -33,6 +40,23 @@ class MenuControllerIntegrationTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeAll
+    void setup() throws IOException {
+        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
+
+        String[] sqlStatements = sqlScript.split(";");
+
+        for (String sql : sqlStatements) {
+            sql = sql.trim();
+            if (!sql.isEmpty()) {
+                jdbcTemplate.execute(sql);
+            }
+        }
+    }
 
 
     @Test
@@ -43,7 +67,7 @@ class MenuControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
                 .andExpect(jsonPath("$.data[0].name").value("아메리카노"))
-                .andExpect(jsonPath("$.data[1].name").value("카페라떼"));
+                .andExpect(jsonPath("$.data[0].price").value(5000));
     }
 
     @Test
@@ -51,11 +75,12 @@ class MenuControllerIntegrationTest {
     void testGetAllMenusWithCategory() throws Exception {
 
         String response = mockMvc.perform(get("/menus")
-                        .param("categoryId", "101")
+                        .param("categoryId", "1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].categoryName").value("음료"))
+                .andExpect(jsonPath("$.data[0].name").value("아메리카노"))
+                .andExpect(jsonPath("$.data[0].categoryName").value("COFFEE"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -71,8 +96,8 @@ class MenuControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1L))
                 .andExpect(jsonPath("$.data.name").value("아메리카노"))
-                .andExpect(jsonPath("$.data.categoryName").value("음료"))
-                .andExpect(jsonPath("$.data.description").value("커피"));
+                .andExpect(jsonPath("$.data.categoryName").value("COFFEE"))
+                .andExpect(jsonPath("$.data.price").value(5000));
     }
 
     @Test
@@ -101,11 +126,11 @@ class MenuControllerIntegrationTest {
         assert data instanceof Map;
         Map<String, Object> dataMap = (Map<String, Object>) data;
 
-        List<String> responseDateKeys = dataMap.keySet().stream().collect(Collectors.toList());
+        List<String> responseDateKeys = dataMap.keySet().stream().toList();
 
         List<String> MenuDetailResDTOFieldNames = Arrays.stream(MenuDetailResDTO.class.getDeclaredFields())
                 .map(java.lang.reflect.Field::getName)
-                .collect(Collectors.toList());
+                .toList();
 
         responseDateKeys.forEach(key -> {
             assert MenuDetailResDTOFieldNames.contains(key);
@@ -124,12 +149,12 @@ class MenuControllerIntegrationTest {
     @Test
     @DisplayName("메뉴가 성공적으로 생성되고 성공 후, 생성된 ID를 반환한다")
     void testCreateMenuSuccess() throws Exception {
-        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
+        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 1L, "image.jpg");
         mockMvc.perform(post("/menus")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(menuCreateReqDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(4L));
+                .andExpect(jsonPath("$.data.id").exists());
     }
 
     @Test
@@ -147,15 +172,9 @@ class MenuControllerIntegrationTest {
     @Test
     @DisplayName("메뉴 수정 시 성공하면 200 OK와 수정된 메뉴 ID를 반환한다")
     void testUpdateMenuSuccess() throws Exception {
-        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
-        String res = mockMvc.perform(post("/menus")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
 
-        JSONObject jsonObject = new JSONObject(res);
-
-        Long targetId = jsonObject.getJSONObject("data").getLong("id");
-        MenuUpdateReqDTO updateMenuReqDTO = new MenuUpdateReqDTO(targetId, "Updated Menu", "Updated Menu Description", 2000, 101L, "updated-image.jpg");
+        Long targetId = 2L;
+        MenuUpdateReqDTO updateMenuReqDTO = new MenuUpdateReqDTO(targetId, "Updated Menu", "Updated Menu Description", 2000, 1L, "updated-image.jpg");
 
         mockMvc.perform(patch("/menus")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -168,14 +187,7 @@ class MenuControllerIntegrationTest {
     @Test
     @DisplayName("메뉴 삭제 시 성공하면 200 OK와 삭제된 메뉴 ID를 반환한다")
     void testDeleteMenuSuccess() throws Exception {
-        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
-        String res = mockMvc.perform(post("/menus")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
-
-        JSONObject jsonObject = new JSONObject(res);
-
-        Long targetId = jsonObject.getJSONObject("data").getLong("id");
+        Long targetId = 3L;
         String deleteReqUrl = "/menus/" + targetId;
         mockMvc.perform(delete(deleteReqUrl)
                         .contentType(MediaType.APPLICATION_JSON))

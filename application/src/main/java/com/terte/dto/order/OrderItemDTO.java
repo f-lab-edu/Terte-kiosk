@@ -18,4 +18,12 @@ public class OrderItemDTO {
     private Integer quantity;
     private List<SelectedOptionDTO> selectedOptions;
 
+    public static OrderItemDTO from(OrderItem orderItem){
+        return OrderItemDTO.builder()
+                .menuId(orderItem.getMenuId())
+                .quantity(orderItem.getQuantity())
+                .selectedOptions(orderItem.getSelectedOptions().stream().map(SelectedOptionDTO::from).collect(Collectors.toList()))
+                .build();
+    }
+
 }

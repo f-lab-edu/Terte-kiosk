@@ -12,41 +12,39 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
+    //private final CategoryMapRepository categoryRepository;
     private final CategoryRepository categoryRepository;
     @Override
     public List<Category> getAllCategories(Long StoreId) {
-        return categoryRepository.findByStoreId(StoreId);
+        List<Category> categories = categoryRepository.findByStoreId(StoreId);
+        if(categories.isEmpty()){
+            throw new NotFoundException("Category not found");
+        }
+        return categories;
     }
 
     @Override
     public Category getCategoryById(Long id) {
-        return categoryRepository.findById(id);
+        return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
     }
 
     @Override
     public Category createCategory(Category category) {
-        Category createdCategory = categoryRepository.save(category);
-        return createdCategory;
+        return categoryRepository.save(category);
     }
 
     @Override
     public Category updateCategory(Category category) {
-        Category existionCategory = categoryRepository.findById(category.getId());
-        if(existionCategory == null){
-            throw new NotFoundException("Category not found");
-        }
+        Category existionCategory = categoryRepository.findById(category.getId()).orElseThrow(() -> new NotFoundException("Category not found"));
         if (category.getName() == null){
             category.setName(existionCategory.getName());
         }
-        return categoryRepository.update(category);
+        return categoryRepository.save(category);
     }
 
     @Override
     public void deleteCategory(Long id) {
-        Category existionCategory = categoryRepository.findById(id);
-        if(existionCategory == null){
-            throw new NotFoundException("Category not found");
-        }
+        categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
         categoryRepository.deleteById(id);
     }
 }

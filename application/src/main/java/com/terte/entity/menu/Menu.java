@@ -1,6 +1,7 @@
 package com.terte.entity.menu;
 
 import com.terte.entity.category.Category;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
@@ -9,16 +10,21 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
+@Entity
 public class Menu {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private Integer price;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
     private Category category;
     private Long storeId;
     private String image;
     private String description;
-    private List<Option> options;
-
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "menu")
+    private List<MenuOption> menuOptions;
 }
 
 

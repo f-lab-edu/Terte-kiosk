@@ -3,13 +3,11 @@ package com.terte.service.category;
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.category.Category;
 import com.terte.repository.category.CategoryRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
@@ -43,7 +41,7 @@ class CategoryServiceTest {
     void getCategoryById() {
         Long categoryId = 1L;
         Category category = new Category(categoryId, "음료", 1L,"음료설명");
-        when(categoryRepository.findById(categoryId)).thenReturn(category);
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
 
         Category result = categoryService.getCategoryById(categoryId);
 
@@ -72,8 +70,8 @@ class CategoryServiceTest {
         Category existingCategory = new Category(1L, "음료",1L,"음료설명");
         Category updatedCategory = new Category(1L, "빙수",1L,"빙수설명");
 
-        when(categoryRepository.findById(1L)).thenReturn(existingCategory);
-        when(categoryRepository.update(updatedCategory)).thenReturn(updatedCategory);
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(existingCategory));
+        when(categoryRepository.save(updatedCategory)).thenReturn(updatedCategory);
 
         // when
         Category result = categoryService.updateCategory(updatedCategory);
@@ -81,13 +79,13 @@ class CategoryServiceTest {
         // then
         assertEquals("빙수", result.getName());
         verify(categoryRepository).findById(1L);
-        verify(categoryRepository).update(updatedCategory);
+        verify(categoryRepository).save(updatedCategory);
     }
 
     @Test
     @DisplayName("카테고리가 존재하지 않을 때 NotFoundException 발생")
     void updateCategoryNotFound() {
-        when(categoryRepository.findById(1L)).thenReturn(null);
+        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(
                 NotFoundException.class,
@@ -96,7 +94,7 @@ class CategoryServiceTest {
 
         assertEquals("Category not found", exception.getMessage());
         verify(categoryRepository).findById(1L);
-        verify(categoryRepository, never()).update(any());
+        verify(categoryRepository, never()).save(any());
     }
 
     @Test
@@ -105,14 +103,14 @@ class CategoryServiceTest {
         Category existingCategory = new Category(1L, "음료",1L,"음료설명");
         Category updatedCategory = new Category(1L, null,1L,"음료설명");
 
-        when(categoryRepository.findById(1L)).thenReturn(existingCategory);
-        when(categoryRepository.update(any(Category.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(existingCategory));
+        when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Category result = categoryService.updateCategory(updatedCategory);
 
         assertEquals("음료", result.getName()); // 기존 이름 유지
         verify(categoryRepository).findById(1L);
-        verify(categoryRepository).update(updatedCategory);
+        verify(categoryRepository).save(updatedCategory);
     }
 
     @Test
@@ -120,7 +118,7 @@ class CategoryServiceTest {
     void deleteCategorySuccess() {
         Long categoryId = 1L;
         Category existingCategory = new Category(1L, "음료",1L,"음료설명");
-        when(categoryRepository.findById(categoryId)).thenReturn(existingCategory);
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(existingCategory));
         doNothing().when(categoryRepository).deleteById(categoryId);
 
         categoryService.deleteCategory(categoryId);
@@ -132,7 +130,7 @@ class CategoryServiceTest {
     @DisplayName("존재하지 않는 카테고리 삭제 시 NotFoundException 발생")
     void deleteCategoryNotFound() {
         Long categoryId = 1L;
-        when(categoryRepository.findById(categoryId)).thenReturn(null);
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(
                 NotFoundException.class,

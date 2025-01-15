@@ -1,6 +1,6 @@
 package com.terte.dto.menu;
 
-import com.terte.entity.menu.Option;
+import com.terte.entity.menu.MenuOption;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,9 +18,9 @@ public class OptionResDTO {
     private Boolean required;
     private List<ChoiceResDTO> choices;
 
-    public static OptionResDTO from(Option option) {
-        List<ChoiceResDTO> choiceResDTOList = option.getChoices().stream().map(ChoiceResDTO::from).collect(Collectors.toList());
-        return new OptionResDTO(option.getId(), option.getName(), option.getMultipleSelection(), option.getRequired(), choiceResDTOList);
+    public static OptionResDTO from(MenuOption menuOption) {
+        List<ChoiceResDTO> choiceResDTOList = menuOption.getChoices().stream().map(ChoiceResDTO::from).collect(Collectors.toList());
+        return new OptionResDTO(menuOption.getId(), menuOption.getName(), menuOption.getMultipleSelection(), menuOption.getRequired(), choiceResDTOList);
 
     }
 }

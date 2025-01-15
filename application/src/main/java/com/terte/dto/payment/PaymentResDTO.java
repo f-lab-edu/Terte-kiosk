@@ -15,6 +15,6 @@ public class PaymentResDTO {
     private PaymentStatus status;
 
     public static PaymentResDTO from(Payment payment) {
-        return new PaymentResDTO(payment.getId(), payment.getOrder().getId(), payment.getPaymentMethod(), payment.getStatus());
+        return new PaymentResDTO(payment.getId(), payment.getOrderId(), payment.getPaymentMethod(), payment.getStatus());
     }
 }

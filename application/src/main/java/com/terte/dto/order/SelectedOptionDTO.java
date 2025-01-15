@@ -13,4 +13,8 @@ import java.util.List;
 public class SelectedOptionDTO {
     private Long optionId;
     private List<Long> selectedChoiceIds;
+
+    public static SelectedOptionDTO from(SelectedOption selectedOption){
+        return new SelectedOptionDTO(selectedOption.getMenuOptionId(), selectedOption.getSelectedChoiceIds());
+    }
 }

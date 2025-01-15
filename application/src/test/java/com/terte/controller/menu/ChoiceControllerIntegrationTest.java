@@ -4,16 +4,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
 import com.terte.dto.menu.ChoiceCreateReqDTO;
 import com.terte.dto.menu.ChoiceUpdateReqDTO;
-import org.json.JSONObject;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,7 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
 public class ChoiceControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -29,37 +35,46 @@ public class ChoiceControllerIntegrationTest {
     @Autowired
     ObjectMapper objectMapper;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeAll
+    void setup() throws IOException {
+        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
+
+        String[] sqlStatements = sqlScript.split(";");
+
+        for (String sql : sqlStatements) {
+            sql = sql.trim();
+            if (!sql.isEmpty()) {
+                jdbcTemplate.execute(sql);
+            }
+        }
+    }
+
 
     @Test
     @DisplayName("선택지를 생성한다.")
     void testCreateChoice() throws Exception {
-        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500);
+        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500,1L);
         mockMvc.perform(post("/choices")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(6L));
+                .andExpect(jsonPath("$.data.id").exists());
     }
 
     @Test
     @DisplayName("선택지를 수정한다.")
     void testUpdateChoice() throws Exception {
-        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500);
-        String res = mockMvc.perform(post("/choices")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
-                ).andReturn().getResponse().getContentAsString();
-        JSONObject jsonObject = new JSONObject(res);
-        Long choiceId = jsonObject.getJSONObject("data").getLong("id");
-
-        ChoiceUpdateReqDTO choiceUpdateReqDTO = new ChoiceUpdateReqDTO(choiceId, null, 1000);
+        ChoiceUpdateReqDTO choiceUpdateReqDTO = new ChoiceUpdateReqDTO(1L, null, 1000);
         mockMvc.perform(put("/choices")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(choiceUpdateReqDTO))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(choiceId));
+                .andExpect(jsonPath("$.data.id").value(1L));
     }
 
     @Test
@@ -76,13 +91,7 @@ public class ChoiceControllerIntegrationTest {
     @Test
     @DisplayName("선택지를 삭제한다.")
     void testDeleteChoice() throws Exception {
-        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500);
-        String res = mockMvc.perform(post("/choices")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
-                ).andReturn().getResponse().getContentAsString();
-        JSONObject jsonObject = new JSONObject(res);
-        Long choiceId = jsonObject.getJSONObject("data").getLong("id");
+        Long choiceId = 2L;
 
         mockMvc.perform(delete("/choices/" + choiceId)
                         .contentType(MediaType.APPLICATION_JSON)
