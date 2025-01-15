@@ -31,7 +31,7 @@ public class MenuController {
      */
     @GetMapping
     public ResponseEntity<ApiResDTO<List<MenuResDTO>>> getAllMenus(@RequestParam(required = false) Long categoryId) {
-        Long storeId = 1L;
+        Long storeId = 101L;
         List<Menu> menus = menuService.getAllMenus(storeId, categoryId);
         List<MenuResDTO> menuResDTOs = menus.stream().map(MenuResDTO::from).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResDTO.success(menuResDTOs));
@@ -64,7 +64,7 @@ public class MenuController {
                 menuCreateReqDTO.getName(),
                 menuCreateReqDTO.getPrice(),
                 category,
-                1L,
+                101L,
                 menuCreateReqDTO.getImage(),
                 menuCreateReqDTO.getDescription(),
                 null
@@ -93,7 +93,7 @@ public class MenuController {
                 updateMenuReqDTO.getName(),
                 updateMenuReqDTO.getPrice(),
                 category,
-                1L,
+                101L,
                 updateMenuReqDTO.getImage(),
                 updateMenuReqDTO.getDescription(),
                 menuOptions

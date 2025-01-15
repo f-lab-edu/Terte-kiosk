@@ -4,7 +4,6 @@ import com.terte.common.enums.OrderStatus;
 import com.terte.dto.order.CreateOrderReqDTO;
 import com.terte.dto.order.OrderItemDTO;
 import com.terte.dto.order.SelectedOptionDTO;
-import com.terte.entity.menu.Choice;
 import com.terte.entity.menu.Menu;
 import com.terte.entity.menu.MenuOption;
 import com.terte.entity.order.Order;
@@ -17,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
@@ -35,10 +34,31 @@ public class OrderServiceHelper {
         order.setPhoneNumber(createOrderReqDTO.getPhoneNumber());
         order.setTableNumber(createOrderReqDTO.getTableNumber());
 
+
+
+
         createOrderReqDTO.getOrderItemList().forEach(orderItemDTO -> {
             OrderItem orderItem = createOrderItem(orderItemDTO);
             order.addOrderItem(orderItem);
         });
+
+        AtomicLong price = new AtomicLong(0);
+
+        order.getOrderItems().forEach(orderItem -> {
+            Menu menu = menuService.getMenuById(orderItem.getMenuId());
+            price.addAndGet((long) menu.getPrice() * orderItem.getQuantity());
+
+            orderItem.getSelectedOptions().forEach(selectedOption -> {
+                MenuOption menuOption = optionService.getOptionById(selectedOption.getMenuOptionId());
+                menuOption.getChoices().forEach(choice -> {
+                    price.addAndGet(choice.getPrice());
+                });
+            });
+        });
+
+        Long totalPrice = price.get();
+
+        order.setTotalPrice(totalPrice);
 
         return order;
     }
@@ -69,16 +89,15 @@ public class OrderServiceHelper {
     }
 
     private void isChoiceExist(List<Long> choiceIds) {
-        choiceIds.forEach(choiceId -> {
-            Choice choice = choiceService.getChoiceById(choiceId);
-        });
+        choiceIds.forEach(choiceService::getChoiceById);
     }
 
     private void isOptionExist(Long optionId) {
-        MenuOption menuOption = optionService.getOptionById(optionId);
+        optionService.getOptionById(optionId);
     }
 
     private void isMenuExist(Long menuId) {
-        Menu menu = menuService.getMenuById(menuId);
+       menuService.getMenuById(menuId);
     }
+
 }

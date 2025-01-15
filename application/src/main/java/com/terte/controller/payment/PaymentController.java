@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/payments")
@@ -31,11 +33,11 @@ public class PaymentController {
      * 결제 조회
      */
     @GetMapping
-    public ResponseEntity<ApiResDTO<PaymentResDTO>> getPayment() {
-        Long storeId = 1L;
-        Payment payment = paymentService.getPaymentById(storeId);
-        PaymentResDTO paymentResDTO = PaymentResDTO.from(payment);
-        return ResponseEntity.ok(ApiResDTO.success(paymentResDTO));
+    public ResponseEntity<ApiResDTO<List<PaymentResDTO>>> getPayment() {
+        Long storeId = 101L;
+        List<Payment> payments = paymentService.getAllPayments(storeId);
+        List<PaymentResDTO> paymentResDTOS = payments.stream().map(PaymentResDTO::from).toList();
+        return ResponseEntity.ok(ApiResDTO.success(paymentResDTOS));
     }
     /**
      * POST /payments
@@ -52,7 +54,7 @@ public class PaymentController {
                 return ResponseEntity.badRequest().build();
             }
             Order order = orderService.getOrderById(orderId);
-            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, order.getId());
+            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, order.getId(), order.getTotalPrice());
             createdPayment = paymentService.createPayment(payment);
         } else if (paymentRequest.getPaymentCreateType() == PaymentCreateType.ORDER_AND_PAY){
             CreateOrderReqDTO createOrderReqDTO =  paymentRequest.getOrder();
@@ -61,7 +63,7 @@ public class PaymentController {
             }
             Order saveTargetOrder = orderServiceHelper.createOrder(createOrderReqDTO, storeId);
             Order savedOrder = orderService.createOrder(saveTargetOrder);
-            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, savedOrder.getId());
+            Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, savedOrder.getId(), savedOrder.getTotalPrice());
 
             createdPayment = paymentService.createPayment(payment);
         }

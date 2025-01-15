@@ -1,10 +1,7 @@
 package com.terte.entity.payment;
 
-import com.terte.common.enums.PaymentCreateType;
 import com.terte.common.enums.PaymentMethod;
 import com.terte.common.enums.PaymentStatus;
-import com.terte.dto.order.CreateOrderReqDTO;
-import com.terte.entity.order.Order;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,4 +24,5 @@ public class Payment {
     private PaymentStatus status;
 
     private Long orderId;
+    private Long totalPrice;
 }

@@ -10,14 +10,21 @@ import com.terte.dto.order.CreateOrderReqDTO;
 import com.terte.dto.order.OrderItemDTO;
 import com.terte.dto.order.SelectedOptionDTO;
 import com.terte.dto.payment.PaymentReqDTO;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -26,13 +33,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
 class PaymentControllerIntegrationTest {
-    //TODO: PaymentController 통합 테스트 코드 수정
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeAll
+    void setup() throws IOException {
+        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
+
+        String[] sqlStatements = sqlScript.split(";");
+
+        for (String sql : sqlStatements) {
+            sql = sql.trim();
+            if (!sql.isEmpty()) {
+                jdbcTemplate.execute(sql);
+            }
+        }
+    }
 
     @Test
     @DisplayName("결제 조회 시 결제 정보가 반환된다")
@@ -40,29 +65,27 @@ class PaymentControllerIntegrationTest {
         mockMvc.perform(get("/payments")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L))
-                .andExpect(jsonPath("$.data.paymentMethod").value(PaymentMethod.CASH.name()))
-                .andExpect(jsonPath("$.data.orderId").value(1L))
-                .andExpect(jsonPath("$.data.status").value(PaymentStatus.PAYMENT_COMPLETED.name()));
+                .andExpect(jsonPath("$.data[0].id").value(1L))
+                .andExpect(jsonPath("$.data[0].paymentMethod").value(PaymentMethod.CREDIT_CARD.name()))
+                .andExpect(jsonPath("$.data[0].orderId").value(2L))
+                .andExpect(jsonPath("$.data[0].status").value(PaymentStatus.PAYMENT_COMPLETED.name()));
     }
 
     @Test
     @DisplayName("결제 생성 시 성공하면 200 OK와 생성된 결제 ID를 반환한다 - 주문 및 결제")
     void testCreatePaymentOrderAndPaySuccess() throws Exception {
-        OrderItemDTO orderItemDTO = new OrderItemDTO(1L, 1,List.of(new SelectedOptionDTO()));
-        CreateOrderReqDTO order = CreateOrderReqDTO.builder()
-                .orderItemList(
-                        List.of(
-                                orderItemDTO
-                        )
-                )
-                .phoneNumber("010-1234-5678")
-                .tableNumber(1)
-                .orderType(OrderType.EATIN)
-                .build();
+        SelectedOptionDTO selectedOptionDTO = new SelectedOptionDTO(1L,List.of(1L));
+        OrderItemDTO orderItemDTO =  new OrderItemDTO(1L,1,List.of(selectedOptionDTO));
+        CreateOrderReqDTO createOrderReqDTO = new CreateOrderReqDTO(
+                List.of(orderItemDTO),
+                OrderType.EATIN,
+                "010-1234-5678",
+                1,
+                10000
+        );
         PaymentReqDTO orderAndPayReqDTO = PaymentReqDTO.builder()
                 .paymentCreateType(PaymentCreateType.ORDER_AND_PAY)
-                .order(order)
+                .order(createOrderReqDTO)
                 .paymentMethod(PaymentMethod.CASH)
                 .build();
 
@@ -70,7 +93,7 @@ class PaymentControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(orderAndPayReqDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L));
+                .andExpect(jsonPath("$.data.id").exists());
     }
 
     @Test
@@ -86,7 +109,7 @@ class PaymentControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(paymentReqDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L));
+                .andExpect(jsonPath("$.data.id").value(3L));
     }
     @Test
     @DisplayName("결제 취소 시 성공하면 200 OK와 취소된 결제 ID를 반환한다")

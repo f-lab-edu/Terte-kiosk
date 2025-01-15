@@ -13,7 +13,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
-    //private final PaymentMapRepository paymentMapRepository;
     private final PaymentRepository paymentRepository;
     @Override
     public List<Payment> getAllPayments(Long storeId) {

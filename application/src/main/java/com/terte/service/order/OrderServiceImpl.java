@@ -1,27 +1,35 @@
 package com.terte.service.order;
 
+import com.terte.common.enums.OrderStatus;
 import com.terte.common.exception.NotFoundException;
+import com.terte.entity.menu.Menu;
 import com.terte.entity.menu.MenuOption;
 import com.terte.entity.order.Order;
 import com.terte.entity.order.OrderItem;
 import com.terte.entity.order.SelectedOption;
-import com.terte.repository.menu.OptionRepository;
 import com.terte.repository.order.OrderRepository;
+import com.terte.service.menu.MenuService;
 import com.terte.service.menu.OptionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OptionService optionService;
+    private final MenuService menuService;
     @Override
-    public List<Order> getAllOrders(Long storeId) {
+    public List<Order> getAllOrders(Long storeId, OrderStatus status) {
         List<Order> orders = orderRepository.findByStoreId(storeId);
+        if(status != null){
+            orders.removeIf(order -> !order.getStatus().equals(status));
+        }
         if(orders.isEmpty()){
             throw new NotFoundException("Order not found");
         }
@@ -36,12 +44,24 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public Order createOrder(Order order) {
-        // Check if all required options are selected
+        Map<Long, Menu> menuCache = order.getOrderItems().stream()
+                .map(item -> menuService.getMenuById(item.getMenuId()))
+                .collect(Collectors.toMap(Menu::getId, menu -> menu));
+
+
         for (OrderItem item : order.getOrderItems()) {
-            for (SelectedOption selectedOption : item.getSelectedOptions()) {
-                MenuOption option = optionService.getOptionById(selectedOption.getMenuOptionId());
-                if (option.getRequired() && selectedOption.getSelectedChoiceIds().isEmpty()) {
-                    throw new NotFoundException("Required option not selected");
+            Menu menu = menuCache.get(item.getMenuId());
+
+            for (MenuOption option : menu.getMenuOptions()) {
+                if (option.getRequired()) {
+                    boolean optionSelected = item.getSelectedOptions() != null &&
+                            item.getSelectedOptions().stream()
+                                    .anyMatch(selectedOption -> selectedOption.getMenuOptionId().equals(option.getId()));
+                    if (!optionSelected) {
+                        throw new IllegalArgumentException(
+                                String.format("Required option '%s' not selected for menu '%s'", option.getName(), menu.getName())
+                        );
+                    }
                 }
             }
         }
@@ -51,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
             for (SelectedOption selectedOption : item.getSelectedOptions()) {
                 MenuOption option = optionService.getOptionById(selectedOption.getMenuOptionId());
                 if (!option.getMultipleSelection() && selectedOption.getSelectedChoiceIds().size() > 1) {
-                    throw new NotFoundException("Multiple selection not allowed");
+                    throw new IllegalArgumentException("Multiple selection not allowed");
                 }
             }
         }

@@ -5,20 +5,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
 import com.terte.common.enums.OrderStatus;
 import com.terte.common.enums.OrderType;
-import com.terte.dto.menu.CategoryResDTO;
-import com.terte.dto.menu.MenuResDTO;
-import com.terte.dto.order.CreateOrderReqDTO;
-import com.terte.dto.order.OrderDetailResDTO;
-import com.terte.dto.order.OrderItemDTO;
-import com.terte.dto.order.UpdateOrderReqDTO;
+import com.terte.dto.order.*;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -30,14 +32,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
 class OrderControllerIntegrationTest {
-    //TODO: OrderController 통합 테스트 코드 수정
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeAll
+    void setup() throws IOException {
+        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
+
+        String[] sqlStatements = sqlScript.split(";");
+
+        for (String sql : sqlStatements) {
+            sql = sql.trim();
+            if (!sql.isEmpty()) {
+                jdbcTemplate.execute(sql);
+            }
+        }
+    }
 
 
     @Test
@@ -48,6 +68,16 @@ class OrderControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
                 .andExpect(jsonPath("$.data[0].status").value("ORDERED"));
+    }
+
+    @Test
+    @DisplayName("주문 상태를 통해 주문 리스트를 조회한다.")
+    void testGetAllOrdersByStatus() throws Exception {
+        mockMvc.perform(get("/orders?status=ORDERED")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value(1L))
+                .andExpect(jsonPath("$.data[*].status").value("ORDERED"));
     }
 
     @Test
@@ -79,11 +109,11 @@ class OrderControllerIntegrationTest {
         assert data instanceof Map;
         Map<String, Object> dataMap = (Map<String,Object>) data;
 
-        List<String> responseDateKeys = dataMap.keySet().stream().collect(Collectors.toList());
+        List<String> responseDateKeys = dataMap.keySet().stream().toList();
 
         List<String> orderDetailResDTOFieldNames = Arrays.stream(OrderDetailResDTO.class.getDeclaredFields())
                 .map(java.lang.reflect.Field::getName)
-                .collect(Collectors.toList());
+                .toList();
 
         responseDateKeys.forEach(key -> {
             assert orderDetailResDTOFieldNames.contains(key);
@@ -101,7 +131,8 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 생성 시 성공적으로 생성되고 생성된 ID를 반환한다")
     void testCreateOrderSuccess() throws Exception {
-        OrderItemDTO orderItemDTO =  new OrderItemDTO(1L,1,List.of(null));
+        SelectedOptionDTO selectedOptionDTO = new SelectedOptionDTO(1L,List.of(1L));
+        OrderItemDTO orderItemDTO =  new OrderItemDTO(1L,1,List.of(selectedOptionDTO));
         CreateOrderReqDTO createOrderReqDTO = new CreateOrderReqDTO(
                 List.of(orderItemDTO),
                 OrderType.EATIN,
@@ -113,7 +144,43 @@ class OrderControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createOrderReqDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(2L));
+                .andExpect(jsonPath("$.data.id").exists());
+    }
+
+    @Test
+    @DisplayName("주문 생성 시 필수 선택 옵션의 값이 없으면 400 Bad Request를 반환한다")
+    void testCreateOrderWithoutRequiredOption() throws Exception {
+        SelectedOptionDTO selectedOptionDTO = new SelectedOptionDTO(1L,List.of(1L));
+        OrderItemDTO orderItemDTO =  new OrderItemDTO(3L,1,List.of(selectedOptionDTO));
+        CreateOrderReqDTO createOrderReqDTO = new CreateOrderReqDTO(
+                List.of(orderItemDTO),
+                OrderType.EATIN,
+                "010-1234-5678",
+                1,
+                10000
+        );
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createOrderReqDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("주문 생성 시 중복 선택 불가 옵션의 다수가 선택되면 400 Bad Request를 반환한다")
+    void testCreateOrderWithDuplicateOption() throws Exception {
+        SelectedOptionDTO selectedOptionDTO1 = new SelectedOptionDTO(4L,List.of(5L,6L));
+        OrderItemDTO orderItemDTO =  new OrderItemDTO(3L,1,List.of(selectedOptionDTO1));
+        CreateOrderReqDTO createOrderReqDTO = new CreateOrderReqDTO(
+                List.of(orderItemDTO),
+                OrderType.EATIN,
+                "010-1234-5678",
+                1,
+                10000
+        );
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createOrderReqDTO)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

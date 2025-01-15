@@ -3,20 +3,24 @@ package com.terte.controller.category;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
-import com.terte.dto.menu.CategoryResDTO;
 import com.terte.dto.menu.CategoryCreateReqDTO;
+import com.terte.dto.menu.CategoryResDTO;
 import com.terte.dto.menu.CategoryUpdateReqDTO;
-import com.terte.entity.category.Category;
 import org.json.JSONObject;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CategoryControllerIntegrationTest {
 
     @Autowired
@@ -37,21 +41,27 @@ class CategoryControllerIntegrationTest {
     @Autowired
     ObjectMapper objectMapper;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
 
+    @BeforeAll
+    void setup() throws IOException {
+        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
+
+        String[] sqlStatements = sqlScript.split(";");
+
+        for (String sql : sqlStatements) {
+            sql = sql.trim();
+            if (!sql.isEmpty()) {
+                jdbcTemplate.execute(sql);
+            }
+        }
+    }
 
     @Test
     @DisplayName("카테고리 조회 시 모든 카테고리가 반환된다")
     void testGetAllCategories() throws Exception {
-        String newCategoryName = "New Category";
-        CategoryCreateReqDTO categoryCreateReqDTO = new CategoryCreateReqDTO(newCategoryName, "New Category Description");
-        String res = mockMvc.perform(post("/categories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(categoryCreateReqDTO))).andReturn().getResponse().getContentAsString();
-        JSONObject jsonObject = new JSONObject(res);
-        Long targetId = jsonObject.getJSONObject("data").getLong("id");
-
-
         mockMvc.perform(get("/categories")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -76,11 +86,11 @@ class CategoryControllerIntegrationTest {
         assert data instanceof List;
         List<Map<String, Object>> dataList = (List<Map<String,Object>>) data;
 
-        List<String> responseDateKeys = dataList.get(0).keySet().stream().collect(Collectors.toList());
+        List<String> responseDateKeys = dataList.get(0).keySet().stream().toList();
 
         List<String> categoryResDTOFieldNames = Arrays.stream(CategoryResDTO.class.getDeclaredFields())
                 .map(java.lang.reflect.Field::getName)
-                .collect(Collectors.toList());
+                .toList();
 
         responseDateKeys.forEach(key -> {
             assert categoryResDTOFieldNames.contains(key);

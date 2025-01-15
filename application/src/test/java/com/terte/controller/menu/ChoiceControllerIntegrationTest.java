@@ -4,18 +4,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terte.TerteMainApplication;
 import com.terte.dto.menu.ChoiceCreateReqDTO;
 import com.terte.dto.menu.ChoiceUpdateReqDTO;
-import com.terte.dto.menu.MenuCreateReqDTO;
-import com.terte.dto.menu.OptionCreateReqDTO;
-import org.json.JSONObject;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,13 +26,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = TerteMainApplication.class)
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
 public class ChoiceControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeAll
+    void setup() throws IOException {
+        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
+
+        String[] sqlStatements = sqlScript.split(";");
+
+        for (String sql : sqlStatements) {
+            sql = sql.trim();
+            if (!sql.isEmpty()) {
+                jdbcTemplate.execute(sql);
+            }
+        }
+    }
 
 
     @Test
@@ -41,37 +62,19 @@ public class ChoiceControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(6L));
+                .andExpect(jsonPath("$.data.id").exists());
     }
 
     @Test
     @DisplayName("선택지를 수정한다.")
     void testUpdateChoice() throws Exception {
-        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
-        String MenuId = mockMvc.perform(post("/menus")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
-
-        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("샷 추가", false, true, Long.parseLong(MenuId));
-        String optionId = mockMvc.perform(post("/options")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(optionCreateReqDTO))).andReturn().getResponse().getContentAsString();
-
-        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500, Long.parseLong(optionId));
-        String res = mockMvc.perform(post("/choices")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
-                ).andReturn().getResponse().getContentAsString();
-        JSONObject jsonObject = new JSONObject(res);
-        Long choiceId = jsonObject.getJSONObject("data").getLong("id");
-
-        ChoiceUpdateReqDTO choiceUpdateReqDTO = new ChoiceUpdateReqDTO(choiceId, null, 1000);
+        ChoiceUpdateReqDTO choiceUpdateReqDTO = new ChoiceUpdateReqDTO(1L, null, 1000);
         mockMvc.perform(put("/choices")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(choiceUpdateReqDTO))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(choiceId));
+                .andExpect(jsonPath("$.data.id").value(1L));
     }
 
     @Test
@@ -88,23 +91,7 @@ public class ChoiceControllerIntegrationTest {
     @Test
     @DisplayName("선택지를 삭제한다.")
     void testDeleteChoice() throws Exception {
-        MenuCreateReqDTO menuCreateReqDTO = new MenuCreateReqDTO("New Menu", "New Menu Description", 1000, 101L, "image.jpg");
-        String MenuId = mockMvc.perform(post("/menus")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(menuCreateReqDTO))).andReturn().getResponse().getContentAsString();
-
-        OptionCreateReqDTO optionCreateReqDTO = new OptionCreateReqDTO("샷 추가", false, true, Long.parseLong(MenuId));
-        String optionId = mockMvc.perform(post("/options")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(optionCreateReqDTO))).andReturn().getResponse().getContentAsString();
-
-        ChoiceCreateReqDTO choiceCreateReqDTO = new ChoiceCreateReqDTO("샷 추가", 500, Long.parseLong(optionId));
-        String res = mockMvc.perform(post("/choices")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(choiceCreateReqDTO))
-                ).andReturn().getResponse().getContentAsString();
-        JSONObject jsonObject = new JSONObject(res);
-        Long choiceId = jsonObject.getJSONObject("data").getLong("id");
+        Long choiceId = 2L;
 
         mockMvc.perform(delete("/choices/" + choiceId)
                         .contentType(MediaType.APPLICATION_JSON)

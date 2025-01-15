@@ -20,6 +20,7 @@ public class SelectedOption {
     private Long menuOptionId;
 
     @ElementCollection
+    @CollectionTable(name = "selected_option_choice_ids", joinColumns = @JoinColumn(name = "selected_option_id"))
     private List<Long> selectedChoiceIds;
 
     @ManyToOne

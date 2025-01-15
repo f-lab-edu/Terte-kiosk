@@ -8,7 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +33,9 @@ public class Order {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
+
+    private Long totalPrice;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "order")
     private List<OrderItem> orderItems = new ArrayList<>();
 
@@ -42,6 +47,9 @@ public class Order {
     private String phoneNumber;
 
     private Integer tableNumber;
+
+    @CreationTimestamp
+    private LocalDateTime createTime = LocalDateTime.now();
 
     public void addOrderItem(OrderItem orderItem) {
         this.orderItems.add(orderItem);
