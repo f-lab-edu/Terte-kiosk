@@ -26,9 +26,11 @@ public class OrderServiceImpl implements OrderService {
     private final MenuService menuService;
     @Override
     public List<Order> getAllOrders(Long storeId, OrderStatus status) {
-        List<Order> orders = orderRepository.findByStoreId(storeId);
-        if(status != null){
-            orders.removeIf(order -> !order.getStatus().equals(status));
+        List<Order> orders;
+        if(status == null){
+            orders =  orderRepository.findByStoreId(storeId);
+        }else{
+            orders = orderRepository.findByStoreIdAndStatus(storeId,status);
         }
         if(orders.isEmpty()){
             throw new NotFoundException("Order not found");
@@ -69,9 +71,21 @@ public class OrderServiceImpl implements OrderService {
         //check multiple selection validation
         for (OrderItem item : order.getOrderItems()) {
             for (SelectedOption selectedOption : item.getSelectedOptions()) {
-                MenuOption option = optionService.getOptionById(selectedOption.getMenuOptionId());
-                if (!option.getMultipleSelection() && selectedOption.getSelectedChoiceIds().size() > 1) {
-                    throw new IllegalArgumentException("Multiple selection not allowed");
+                Menu menu = menuCache.get(item.getMenuId());
+
+                for(MenuOption option: menu.getMenuOptions()){
+                    if(option.getId().equals(selectedOption.getMenuOptionId())){
+                        if(!option.getMultipleSelection()){
+                            long count = item.getSelectedOptions().stream()
+                                    .filter(selectedOptionArg -> selectedOptionArg.getMenuOptionId().equals(option.getId()))
+                                    .count();
+                            if(count > 1){
+                                throw new IllegalArgumentException(
+                                        String.format("Multiple selection not allowed for option '%s' in menu '%s'", option.getName(), menu.getName())
+                                );
+                            }
+                        }
+                    }
                 }
             }
         }
