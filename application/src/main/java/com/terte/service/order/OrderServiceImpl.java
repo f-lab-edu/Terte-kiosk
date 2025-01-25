@@ -46,9 +46,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public Order createOrder(Order order) {
-        Map<Long, Menu> menuCache = order.getOrderItems().stream()
-                .map(item -> menuService.getMenuById(item.getMenuId()))
-                .collect(Collectors.toMap(Menu::getId, menu -> menu));
+        Map<Long, Menu> menuCache = menuService.getMenuByids(order.getOrderItems().stream().map(OrderItem::getMenuId).collect(Collectors.toList()))
+                .stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
 
 
         for (OrderItem item : order.getOrderItems()) {

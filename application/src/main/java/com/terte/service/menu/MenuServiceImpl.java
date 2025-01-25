@@ -80,4 +80,13 @@ public class MenuServiceImpl implements MenuService {
         return menu.getMenuOptions();
     }
 
+    @Override
+    public List<Menu> getMenuByids(List<Long> ids) {
+        List<Menu> menuList = menuRepository.findByIdIn(ids);
+        if(menuList.isEmpty()){
+            throw new NotFoundException("Menu not found");
+        }
+        return menuList;
+    }
+
 }

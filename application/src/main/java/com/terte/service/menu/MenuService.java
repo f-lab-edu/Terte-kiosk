@@ -14,4 +14,7 @@ public interface MenuService {
     Menu updateMenu(Menu menu);
     void deleteMenu(Long id);
     List<MenuOption> getOptionsById(Long id);
+
+    List<Menu> getMenuByids(List<Long> ids);
+
 }
