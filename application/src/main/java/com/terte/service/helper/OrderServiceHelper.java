@@ -4,6 +4,7 @@ import com.terte.common.enums.OrderStatus;
 import com.terte.dto.order.CreateOrderReqDTO;
 import com.terte.dto.order.OrderItemDTO;
 import com.terte.dto.order.SelectedOptionDTO;
+import com.terte.entity.menu.Choice;
 import com.terte.entity.menu.Menu;
 import com.terte.entity.menu.MenuOption;
 import com.terte.entity.order.Order;
@@ -42,23 +43,22 @@ public class OrderServiceHelper {
             order.addOrderItem(orderItem);
         });
 
-        AtomicLong price = new AtomicLong(0);
+        long price = 0;
 
-        order.getOrderItems().forEach(orderItem -> {
+        for (OrderItem orderItem : order.getOrderItems()) {
             Menu menu = menuService.getMenuById(orderItem.getMenuId());
-            price.addAndGet((long) menu.getPrice() * orderItem.getQuantity());
+            price += (long) menu.getPrice() * orderItem.getQuantity();
 
-            orderItem.getSelectedOptions().forEach(selectedOption -> {
+            for (SelectedOption selectedOption : orderItem.getSelectedOptions()) {
                 MenuOption menuOption = optionService.getOptionById(selectedOption.getMenuOptionId());
-                menuOption.getChoices().forEach(choice -> {
-                    price.addAndGet(choice.getPrice());
-                });
-            });
-        });
+                for (Choice choice : menuOption.getChoices()) {
+                    price += choice.getPrice();
+                }
+            }
+        }
 
-        Long totalPrice = price.get();
+        order.setTotalPrice(price);
 
-        order.setTotalPrice(totalPrice);
 
         return order;
     }
