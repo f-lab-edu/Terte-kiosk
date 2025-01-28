@@ -25,20 +25,6 @@ jobs:
       - name: Set up Docker Compose
         run: docker compose -f application/docker-compose.yml up -d test-db
 
-      - name: Run Spring Boot application (For JPA creating tables)
-        run: ./gradlew bootRun &
-
-      - name: Wait for application to initialize
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:8080/actuator/health | grep UP; then
-              echo "Application is ready!"
-              break
-            fi
-            echo "Waiting for application to initialize..."
-            sleep 5
-          done  
-
       - name: Wait for MySQL to be ready
         run: |
           for i in {1..30}; do
@@ -48,6 +34,18 @@ jobs:
             fi
             echo "Waiting for MySQL..."
             sleep 2
+          done
+
+      - name: Run Spring Boot to create tables
+        run: |
+          nohup ./gradlew bootRun > application.log 2>&1 &
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/actuator/health | grep UP; then
+              echo "Spring Boot is ready, and tables are created!"
+              break
+            fi
+            echo "Waiting for Spring Boot to initialize..."
+            sleep 5
           done
 
       - name: Insert test data into MySQL
