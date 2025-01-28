@@ -9,6 +9,7 @@ services:
       MYSQL_DATABASE: terte_db
       MYSQL_USER: test_user
       MYSQL_PASSWORD: test
+
   test-db:
     image: mysql:latest
     ports:
@@ -19,3 +20,5 @@ services:
       MYSQL_DATABASE: testdb
       MYSQL_USER: testuser
       MYSQL_PASSWORD: testpassword
+    volumes:
+      - ./src/test/resources/sql:/data
