@@ -23,7 +23,7 @@ jobs:
         run: docker compose version
 
       - name: Set up Docker Compose
-        run: docker compose up -d test-db
+        run: docker compose -f application/docker-compose.yml up -d test-db
 
       - name: Wait for MySQL to be ready
         run: |
