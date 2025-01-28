@@ -36,6 +36,17 @@ jobs:
             sleep 2
           done
 
+      - name: Insert test data into MySQL
+        run: |
+          docker exec test-db sh -c 'exec mysql -u testuser -ptestpassword testdb < /data/test-data.sql'
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3307/testdb
+          SPRING_DATASOURCE_USERNAME: testuser
+          SPRING_DATASOURCE_PASSWORD: testpassword
+        working-directory: application
+        with:
+          sql-file: src/test/resources/sql/test-data.sql
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:

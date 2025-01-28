@@ -32,23 +32,6 @@ public class MenuOptionControllerIntegrationTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @BeforeAll
-    void setup() throws IOException {
-        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
-
-        String[] sqlStatements = sqlScript.split(";");
-
-        for (String sql : sqlStatements) {
-            sql = sql.trim();
-            if (!sql.isEmpty()) {
-                jdbcTemplate.execute(sql);
-            }
-        }
-    }
-
     @Test
     @DisplayName("옵션ID로 선택지를 조회한다.")
     void testGetChoicesByOptionId() throws Exception{
