@@ -25,6 +25,9 @@ jobs:
       - name: Set up Docker Compose
         run: docker compose -f application/docker-compose.yml up -d test-db
 
+      - name: Run Spring Boot application (For JPA creating tables)
+        run: ./gradlew bootRun &
+
       - name: Wait for MySQL to be ready
         run: |
           for i in {1..30}; do
