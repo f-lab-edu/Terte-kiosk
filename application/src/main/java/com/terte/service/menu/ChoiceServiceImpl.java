@@ -9,13 +9,11 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ChoiceServiceImpl implements ChoiceService {
+    //private final ChoiceMapRepository choiceMapRepository;
     private final ChoiceRepository choiceRepository;
     @Override
     public Choice getChoiceById(Long id) {
-        Choice existingChoice = choiceRepository.findById(id);
-        if(existingChoice == null){
-            throw new NotFoundException("Choice Not Found");
-        }
+        Choice existingChoice = choiceRepository.findById(id).orElseThrow(() -> new NotFoundException("Choice Not Found"));
         return existingChoice;
     }
     @Override
@@ -25,25 +23,22 @@ public class ChoiceServiceImpl implements ChoiceService {
 
     @Override
     public Choice updateChoice(Choice choice) {
-        Choice existingChoice = choiceRepository.findById(choice.getId());
-        if(existingChoice == null){
-            throw new NotFoundException("Choice Not Found");
-        }
+        Choice existingChoice = choiceRepository.findById(choice.getId()).orElseThrow(() -> new NotFoundException("Choice Not Found"));
         if(choice.getName() == null){
             choice.setName(existingChoice.getName());
         }
         if(choice.getPrice() == null){
             choice.setPrice(existingChoice.getPrice());
         }
+        if(choice.getMenuOption() == null){
+            choice.setMenuOption(existingChoice.getMenuOption());
+        }
         return choiceRepository.save(choice);
     }
 
     @Override
     public void deleteChoice(Long id) {
-        Choice existingChoice = choiceRepository.findById(id);
-        if(existingChoice == null){
-            throw new NotFoundException("Choice Not Found");
-        }
+        choiceRepository.findById(id).orElseThrow(() -> new NotFoundException("Choice Not Found"));
         choiceRepository.deleteById(id);
     }
 }

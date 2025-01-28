@@ -1,27 +1,17 @@
 package com.terte.controller.order;
 
 import com.terte.common.enums.OrderStatus;
-import com.terte.common.enums.OrderType;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
 import com.terte.dto.order.*;
-import com.terte.entity.menu.Choice;
-import com.terte.entity.menu.Menu;
-import com.terte.entity.menu.Option;
 import com.terte.entity.order.Order;
-import com.terte.entity.order.OrderItem;
-import com.terte.entity.order.SelectedOption;
 import com.terte.service.helper.OrderServiceHelper;
-import com.terte.service.menu.ChoiceService;
-import com.terte.service.menu.MenuService;
-import com.terte.service.menu.OptionService;
 import com.terte.service.order.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orders")
@@ -37,17 +27,15 @@ public class OrderController {
      */
     @GetMapping
     public ResponseEntity<ApiResDTO<List<OrderResDTO>>> getAllOrders(@RequestParam(required = false) String status) {
-        //List<OrderResDTO> orders = orderService.getAllOrders(status);
-        List<OrderResDTO> orders = List.of(
-                new OrderResDTO(1L, List.of(), OrderType.EATIN, OrderStatus.ORDERED, "2024-12-13 12:00:00", 10000),
-                new OrderResDTO(2L, List.of(), OrderType.TAKEOUT, OrderStatus.ORDERED, "2024-12-13 12:00:00", 10000)
-        );
-        if(status != null) {
-            orders = orders.stream()
-                    .filter(order -> order.getStatus().name().equals(status))
-                    .toList();
+        Long storeId = 101L;
+        OrderStatus orderStatus = null;
+        if(status != null){
+            orderStatus = OrderStatus.valueOf(status);
         }
-        return ResponseEntity.ok(ApiResDTO.success(orders));
+        List<Order> orders = orderService.getAllOrders(storeId,orderStatus);
+        List<OrderResDTO> orderResDTOS = orders.stream().map(OrderResDTO::from).toList();
+
+        return ResponseEntity.ok(ApiResDTO.success(orderResDTOS));
     }
 
     /**
@@ -56,11 +44,9 @@ public class OrderController {
      */
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResDTO<OrderDetailResDTO>> getOrderById(@PathVariable Long orderId) {
-        //orderDetailResDTO orderDetail = orderService.getOrderDetailById(orderId);
-        if (orderId != 1L) {
-            return ResponseEntity.notFound().build();
-        }
-        OrderDetailResDTO orderDetail = new OrderDetailResDTO(1L, List.of(), OrderType.EATIN, OrderStatus.ORDERED, "2024-12-13 12:00:00", "010-1234-5678", 1);
+        Order order = orderService.getOrderById(orderId);
+        OrderDetailResDTO orderDetail = OrderDetailResDTO.from(order);
+
         return ResponseEntity.ok(ApiResDTO.success(orderDetail));
 
     }
@@ -71,7 +57,7 @@ public class OrderController {
      */
     @PostMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> createOrder(@RequestBody CreateOrderReqDTO createOrderReqDTO) {
-        Long storeId = 1L;
+        Long storeId = 101L;
         Order order = orderServiceHelper.createOrder(createOrderReqDTO, storeId);
         Order createdOrder = orderService.createOrder(order);
 
@@ -85,8 +71,8 @@ public class OrderController {
      */
     @PatchMapping
     public ResponseEntity<ApiResDTO<CommonIdResDTO>> updateOrder(@RequestBody UpdateOrderReqDTO updateOrderReqDTO) {
-        Long storeId = 1L;
-        Order order = new Order(updateOrderReqDTO.getId(), storeId, updateOrderReqDTO.getStatus(), null, updateOrderReqDTO.getOrderType(), updateOrderReqDTO.getPhoneNumber(), updateOrderReqDTO.getTableNumber());
+        Long storeId = 101L;
+        Order order = new Order(updateOrderReqDTO.getId(), storeId, updateOrderReqDTO.getStatus(), null ,null, updateOrderReqDTO.getOrderType(), updateOrderReqDTO.getPhoneNumber(), updateOrderReqDTO.getTableNumber(),null);
         Order updatedOrder = orderService.updateOrder(order);
         return ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedOrder.getId()).build()));
     }

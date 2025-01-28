@@ -1,6 +1,7 @@
 package com.terte.service.payment;
 
 import com.terte.common.enums.PaymentStatus;
+import com.terte.common.exception.NotFoundException;
 import com.terte.entity.payment.Payment;
 
 import com.terte.repository.payment.PaymentRepository;
@@ -15,12 +16,16 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     @Override
     public List<Payment> getAllPayments(Long storeId) {
-        return paymentRepository.findByStoreId(storeId);
+        List<Payment> payments = paymentRepository.findByStoreId(storeId);
+        if(payments.isEmpty()){
+            throw new NotFoundException("Payment not found");
+        }
+        return payments;
     }
 
     @Override
     public Payment getPaymentById(Long id) {
-       return paymentRepository.findById(id);
+       return paymentRepository.findById(id).orElseThrow(() -> new NotFoundException("Payment not found"));
     }
 
     @Override
@@ -31,7 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Payment cancelPayment(Long id) {
-        Payment payment = paymentRepository.findById(id);
+        Payment payment = paymentRepository.findById(id).orElseThrow(() -> new NotFoundException("Payment not found"));
         payment.setStatus(PaymentStatus.PAYMENT_CANCELLED);
         //TODO: 실제 결제가 취소되도록 로직 추가
         return paymentRepository.save(payment);

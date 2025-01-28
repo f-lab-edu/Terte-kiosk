@@ -1,6 +1,5 @@
 package com.terte.dto.menu;
 
-import com.terte.common.enums.MenuCategory;
 import com.terte.entity.category.Category;
 import lombok.*;
 

@@ -1,7 +1,7 @@
 package com.terte.service.menu;
 
 import com.terte.entity.menu.Menu;
-import com.terte.entity.menu.Option;
+import com.terte.entity.menu.MenuOption;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,5 +13,8 @@ public interface MenuService {
     Menu createMenu(Menu menu);
     Menu updateMenu(Menu menu);
     void deleteMenu(Long id);
-    List<Option> getOptionsById(Long id);
+    List<MenuOption> getOptionsById(Long id);
+
+    List<Menu> getMenuByids(List<Long> ids);
+
 }

@@ -11,4 +11,6 @@ public class ChoiceCreateReqDTO {
     private String name;
     @NotNull
     private Integer price;
+    @NotNull
+    private Long optionId;
 }
