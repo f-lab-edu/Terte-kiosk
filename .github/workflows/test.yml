@@ -28,6 +28,17 @@ jobs:
       - name: Run Spring Boot application (For JPA creating tables)
         run: ./gradlew bootRun &
 
+      - name: Wait for application to initialize
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/actuator/health | grep UP; then
+              echo "Application is ready!"
+              break
+            fi
+            echo "Waiting for application to initialize..."
+            sleep 5
+          done  
+
       - name: Wait for MySQL to be ready
         run: |
           for i in {1..30}; do
