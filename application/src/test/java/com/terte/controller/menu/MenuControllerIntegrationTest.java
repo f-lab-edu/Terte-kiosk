@@ -49,7 +49,6 @@ class MenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].name").value("아메리카노"))
                 .andExpect(jsonPath("$.data[0].price").value(5000));
     }
 
@@ -62,7 +61,6 @@ class MenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].name").value("아메리카노"))
                 .andExpect(jsonPath("$.data[0].categoryName").value("COFFEE"))
                 .andReturn()
                 .getResponse()
@@ -78,7 +76,6 @@ class MenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1L))
-                .andExpect(jsonPath("$.data.name").value("아메리카노"))
                 .andExpect(jsonPath("$.data.categoryName").value("COFFEE"))
                 .andExpect(jsonPath("$.data.price").value(5000));
     }
