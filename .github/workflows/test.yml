@@ -43,7 +43,7 @@ jobs:
       - name: Wait for MySQL to be fully ready
         run: |
           echo "Waiting for MySQL to initialize completely..."
-          until docker exec test-db mysql -u test_user -ptest -e "SELECT 1 FROM terte_db.some_table LIMIT 1"; do
+          until docker exec test-db mysql -u test_user -ptest -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'terte_db'"; do
             echo "MySQL is not ready yet..."
             sleep 2
           done
