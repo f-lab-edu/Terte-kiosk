@@ -60,6 +60,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
           SPRING_DATASOURCE_USERNAME: test_user
           SPRING_DATASOURCE_PASSWORD: test
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
         run: |
           ./gradlew :application:bootRun | tee application.log &
           echo "Waiting for Spring Boot to be ready..."
