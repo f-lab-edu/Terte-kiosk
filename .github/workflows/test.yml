@@ -95,8 +95,10 @@ jobs:
           pwd
           echo "Checking SQL file:"
           ls -al $GITHUB_WORKSPACE/application/src/test/resources/sql/
-
-          docker exec -i test-db mysql -u test_user -ptest terte_db < $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
+          
+          cat $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
+          
+          docker exec -i test-db mysql -u test_user -ptest terte_db -v < $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
       
 
       - name: Run tests
