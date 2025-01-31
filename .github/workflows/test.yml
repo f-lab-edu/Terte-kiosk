@@ -60,19 +60,23 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
           SPRING_DATASOURCE_USERNAME: test_user
           SPRING_DATASOURCE_PASSWORD: test
-          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_JPA_HIBERNATE_DDL_AUTO: update
         run: |
           ./gradlew :application:bootRun | tee application.log &
           echo "Waiting for Spring Boot to be ready..."
           for i in {1..18}; do
+            HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:8080/actuator/health)
             STATUS=$(curl -s http://localhost:8080/actuator/health | jq -r .status)
-            if [ "$STATUS" == "UP" ]; then
+
+            if [ "$HTTP_STATUS" -eq 200 ] && [ "$STATUS" == "UP" ]; then
               echo "Spring Boot is up and running!"
               exit 0
             fi
-            echo "Spring Boot is still starting... ($i/18)"
+
+            echo "Spring Boot is still starting... ($i/18) HTTP_STATUS=$HTTP_STATUS STATUS=$STATUS"
             sleep 5
           done
+
           echo "Spring Boot failed to start in time."
           cat application.log
           exit 1
