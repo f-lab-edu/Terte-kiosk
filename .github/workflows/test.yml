@@ -102,7 +102,7 @@ jobs:
           SPRING_DATASOURCE_USERNAME: test_user
           SPRING_DATASOURCE_PASSWORD: test
           SPRING_JPA_HIBERNATE_DDL_AUTO: none  # 기존 데이터 유지
-        run: ./gradlew :application:test --info --stacktrace --fail-fast
+        run: ./gradlew :application:test  --fail-fast
 
       - name: Tear down MySQL container
         if: always()
