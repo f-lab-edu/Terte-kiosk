@@ -64,7 +64,8 @@ jobs:
           ./gradlew :application:bootRun | tee application.log &
           echo "Waiting for Spring Boot to be ready..."
           for i in {1..18}; do
-            if curl -s http://localhost:8080/actuator/health | grep UP; then
+            STATUS=$(curl -s http://localhost:8080/actuator/health | jq -r .status)
+            if [ "$STATUS" == "UP" ]; then
               echo "Spring Boot is up and running!"
               exit 0
             fi
@@ -72,6 +73,7 @@ jobs:
             sleep 5
           done
           echo "Spring Boot failed to start in time."
+          cat application.log
           exit 1
 
       - name: Print Spring Boot logs on failure
