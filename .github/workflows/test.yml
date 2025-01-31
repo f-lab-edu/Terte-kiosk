@@ -90,7 +90,14 @@ jobs:
         run: cat application.log
 
       - name: Insert test data
-        run: docker exec -i test-db mysql -u test_user -ptest terte_db < src/test/resources/sql/test-data.sql
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Checking SQL file:"
+          ls -al $GITHUB_WORKSPACE/application/src/test/resources/sql/
+
+          docker exec -i test-db mysql -u test_user -ptest terte_db < $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
+      
 
       - name: Run tests
         env:
