@@ -104,7 +104,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
           SPRING_DATASOURCE_USERNAME: test_user
           SPRING_DATASOURCE_PASSWORD: test
-        run: ./gradlew :application:test
+        run: ./gradlew :application:test --info --stacktrace --fail-fast
 
       - name: Tear down MySQL container
         if: always()
