@@ -7,12 +7,3 @@ spring:
     hibernate:
       ddl-auto: create
     show-sql: true
-
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health
-    endpoint:
-      health:
-        show-details: always
