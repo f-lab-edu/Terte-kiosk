@@ -25,6 +25,12 @@ jobs:
       - name: Set up Docker Compose
         run: docker compose -f application/docker-compose.yml up -d test-db
 
+      - name: Check running containers
+        run: docker ps -a
+
+      - name: Check MySQL container logs
+        run: docker logs test-db || true
+
       - name: Wait for MySQL to be fully ready
         run: |
           echo "Waiting for MySQL to be fully ready..."
@@ -40,9 +46,6 @@ jobs:
             echo "MySQL failed to become ready in time."
             exit 1
           fi
-
-      - name: Check MySQL Container Logs
-        run: docker logs test-db || true
 
       - name: Set up JDK
         uses: actions/setup-java@v3

@@ -31,10 +31,10 @@ services:
     networks:
       - mynetwork
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "testuser", "-ptestpassword"]
       interval: 5s
-      retries: 10
-      start_period: 5s
+      retries: 20
+      start_period: 10s
 
 networks:
   mynetwork:
