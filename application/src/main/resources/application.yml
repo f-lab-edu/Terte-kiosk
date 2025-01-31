@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/terte_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
+    username: test_user
+    password: test
+  jpa:
+    hibernate:
+      ddl-auto: create
