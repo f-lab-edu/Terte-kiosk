@@ -36,6 +36,9 @@ jobs:
             sleep 2
           done
 
+      - name: Check MySQL Container Logs
+        run: docker logs test-db || true
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
