@@ -28,7 +28,7 @@ jobs:
       - name: Wait for MySQL to be ready
         run: |
           for i in {1..30}; do
-            if docker exec test-db mysqladmin ping -h"test-db" --silent; then
+            if docker exec $(docker ps --filter name=test-db --format "{{.ID}}") mysqladmin ping -h"test-db" -u root --password=root --silent; then
               echo "MySQL is ready!"
               break
             fi
@@ -36,9 +36,8 @@ jobs:
             sleep 2
           done
 
-
       - name: Check MySQL Container Logs
-        run: docker logs test-db || true
+        run: docker logs $(docker ps --filter name=test-db --format "{{.ID}}") || true
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -71,13 +70,13 @@ jobs:
             exit 1
           fi
 
-      - name: Print application logs on failure  # log 출력
+      - name: Print application logs on failure
         if: failure()
         run: cat application.log
 
       - name: Insert test data into MySQL
         run: |
-          docker exec test-db sh -c 'exec mysql -u testuser -ptestpassword testdb < /data/test-data.sql'
+          docker exec $(docker ps --filter name=test-db --format "{{.ID}}") sh -c 'exec mysql -u testuser -ptestpassword testdb < /docker-entrypoint-initdb.d/test-data.sql'
 
       - name: Run tests
         env:
