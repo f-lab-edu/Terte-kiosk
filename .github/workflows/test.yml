@@ -56,6 +56,10 @@ jobs:
           exit 1
 
       - name: Run Spring Boot & Wait
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
+          SPRING_DATASOURCE_USERNAME: test_user
+          SPRING_DATASOURCE_PASSWORD: test
         run: |
           ./gradlew :application:bootRun | tee application.log &
           echo "Waiting for Spring Boot to be ready..."
