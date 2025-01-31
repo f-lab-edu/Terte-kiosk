@@ -69,7 +69,7 @@ public class ChoiceControllerIntegrationTest {
     @Test
     @DisplayName("선택지를 삭제한다.")
     void testDeleteChoice() throws Exception {
-        Long choiceId = 2L;
+        Long choiceId = 7L;
 
         mockMvc.perform(delete("/choices/" + choiceId)
                         .contentType(MediaType.APPLICATION_JSON)

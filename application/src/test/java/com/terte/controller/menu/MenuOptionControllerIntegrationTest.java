@@ -10,12 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -129,7 +124,7 @@ public class MenuOptionControllerIntegrationTest {
     @Test
     @DisplayName("옵션을 삭제한다")
     void testDeleteOption() throws Exception{
-        Long optionId = 3L;
+        Long optionId = 5L;
 
         mockMvc.perform(delete("/options/" + optionId)
                         .contentType(MediaType.APPLICATION_JSON))
