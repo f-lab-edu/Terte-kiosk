@@ -1,7 +1,10 @@
 version: '3.9'
+
 services:
   db:
     image: mysql:8.0
+    container_name: db
+    restart: always
     ports:
       - "3306:3306"
     environment:
@@ -14,6 +17,8 @@ services:
 
   test-db:
     image: mysql:8.0
+    container_name: test-db
+    restart: always
     ports:
       - "3307:3306"
     environment:
@@ -25,6 +30,11 @@ services:
       - ./src/test/resources/sql:/docker-entrypoint-initdb.d
     networks:
       - mynetwork
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 10
+      start_period: 5s
 
 networks:
   mynetwork:

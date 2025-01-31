@@ -25,19 +25,24 @@ jobs:
       - name: Set up Docker Compose
         run: docker compose -f application/docker-compose.yml up -d test-db
 
-      - name: Wait for MySQL to be ready
+      - name: Wait for MySQL to be fully ready
         run: |
-          for i in {1..30}; do
-            if docker exec $(docker ps --filter name=test-db --format "{{.ID}}") mysqladmin ping -h"test-db" -u root --password=root --silent; then
-              echo "MySQL is ready!"
+          echo "Waiting for MySQL to be fully ready..."
+          for i in {1..60}; do
+            if docker exec test-db mysql -u testuser -ptestpassword -e "SELECT 1" testdb > /dev/null 2>&1; then
+              echo "MySQL is fully ready!"
               break
             fi
-            echo "Waiting for MySQL..."
+            echo "Waiting for MySQL to be fully available..."
             sleep 2
           done
+          if ! docker exec test-db mysql -u testuser -ptestpassword -e "SELECT 1" testdb > /dev/null 2>&1; then
+            echo "MySQL failed to become ready in time."
+            exit 1
+          fi
 
       - name: Check MySQL Container Logs
-        run: docker logs $(docker ps --filter name=test-db --format "{{.ID}}") || true
+        run: docker logs test-db || true
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -76,11 +81,11 @@ jobs:
 
       - name: Insert test data into MySQL
         run: |
-          docker exec $(docker ps --filter name=test-db --format "{{.ID}}") sh -c 'exec mysql -u testuser -ptestpassword testdb < /docker-entrypoint-initdb.d/test-data.sql'
+          docker exec test-db sh -c 'exec mysql -u testuser -ptestpassword testdb < /docker-entrypoint-initdb.d/test-data.sql'
 
       - name: Run tests
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://test-db:3306/testdb
+          SPRING_DATASOURCE_URL: jdbc:mysql://test-db:3306/testdb?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
           SPRING_DATASOURCE_USERNAME: testuser
           SPRING_DATASOURCE_PASSWORD: testpassword
         run: ./gradlew :application:test
