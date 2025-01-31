@@ -3,12 +3,14 @@ package com.terte.service.Order;
 import com.terte.common.enums.OrderType;
 import com.terte.common.enums.OrderStatus;
 import com.terte.common.exception.NotFoundException;
+import com.terte.entity.category.Category;
+import com.terte.entity.menu.Menu;
 import com.terte.entity.menu.MenuOption;
 import com.terte.entity.order.Order;
 import com.terte.entity.order.OrderItem;
 import com.terte.entity.order.SelectedOption;
 import com.terte.repository.order.OrderRepository;
-import com.terte.service.menu.OptionService;
+import com.terte.service.menu.MenuService;
 import com.terte.service.order.OrderServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,11 +29,13 @@ import static org.mockito.Mockito.*;
 public class OrderServiceTest {
     @Mock
     OrderRepository orderRepository;
-    @Mock
-    OptionService optionService;
 
     @InjectMocks
     OrderServiceImpl orderService;
+
+    @Mock
+    MenuService menuService;
+
 
     @Test
     @DisplayName("모든 주문 조회")
@@ -94,7 +98,7 @@ public class OrderServiceTest {
         order.addOrderItem(orderItem);
 
         when(orderRepository.save(order)).thenReturn(order);
-        when(optionService.getOptionById(selectedOption.getMenuOptionId())).thenReturn(new MenuOption(1L, "option",true, true, null, null));
+        when(menuService.getMenuByids(List.of(orderItem.getMenuId()))).thenReturn(List.of(new Menu(1L,"menu",1000,new Category(),1L,"image","desc",List.of(new MenuOption(1L,"option",true,false,null,null)))));
 
         // When
         Order result = orderService.createOrder(order);
