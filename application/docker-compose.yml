@@ -12,33 +12,3 @@ services:
       MYSQL_DATABASE: terte_db
       MYSQL_USER: test_user
       MYSQL_PASSWORD: test
-    networks:
-      - mynetwork
-    command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0
-
-  test-db:
-    image: mysql:8.0
-    container_name: test-db
-    restart: always
-    ports:
-      - "3307:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: testdb
-      MYSQL_USER: testuser
-      MYSQL_PASSWORD: testpassword
-    volumes:
-      - ./src/test/resources/sql:/docker-entrypoint-initdb.d
-    networks:
-      - mynetwork
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "testuser", "-ptestpassword"]
-      interval: 5s
-      retries: 20
-      start_period: 10s
-    command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0
-
-networks:
-  mynetwork:
-    name: mynetwork
-    driver: bridge

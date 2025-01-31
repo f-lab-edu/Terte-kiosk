@@ -16,36 +16,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check Docker version
-        run: docker --version
-
-      - name: Check Docker Compose
-        run: docker compose version
-
-      - name: Set up Docker Compose
-        run: docker compose -f application/docker-compose.yml up -d test-db
-
-      - name: Check running containers
-        run: docker ps -a
-
-      - name: Check MySQL container logs
-        run: docker logs test-db || true
-
-      - name: Wait for MySQL to be fully ready
+      - name: Start MySQL test container
         run: |
-          echo "Waiting for MySQL to be fully ready..."
-          for i in {1..60}; do
-            if docker exec test-db mysql -u testuser -ptestpassword -e "SELECT 1" testdb > /dev/null 2>&1; then
-              echo "MySQL is fully ready!"
-              break
-            fi
-            echo "Waiting for MySQL to be fully available..."
+          docker run -d --name test-db \
+            -e MYSQL_ROOT_PASSWORD=root \
+            -e MYSQL_DATABASE=terte_db \
+            -e MYSQL_USER=test_user \
+            -e MYSQL_PASSWORD=test \
+            -p 3307:3306 \
+            mysql:8.0
+
+      - name: Wait for MySQL
+        run: |
+          echo "Waiting for MySQL..."
+          until docker exec test-db mysql -u test_user -ptest -e "SELECT 1"; do
             sleep 2
           done
-          if ! docker exec test-db mysql -u testuser -ptestpassword -e "SELECT 1" testdb > /dev/null 2>&1; then
-            echo "MySQL failed to become ready in time."
-            exit 1
-          fi
+          echo "MySQL is ready."
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -53,46 +40,34 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+      - name: Wait for MySQL to be fully ready
+        run: |
+          echo "Waiting for MySQL to initialize completely..."
+          until docker exec test-db mysql -u test_user -ptest -e "SELECT 1 FROM terte_db.some_table LIMIT 1"; do
+            echo "MySQL is not ready yet..."
+            sleep 2
+          done
+          echo "MySQL is fully initialized!"
 
-      - name: Run Spring Boot to create tables
+      - name: Run Spring Boot & Wait
         run: |
           nohup ./gradlew :application:bootRun > application.log 2>&1 &
-          for i in {1..30}; do
-            if curl -s http://localhost:8080/actuator/health | grep UP; then
-              echo "Spring Boot is ready, and tables are created!"
-              break
-            fi
-            echo "Waiting for Spring Boot to initialize..."
+          until curl -s http://localhost:8080/actuator/health | grep UP; do
+            echo "Waiting for Spring Boot to be ready..."
             sleep 5
           done
-          if ! curl -s http://localhost:8080/actuator/health | grep UP; then
-            echo "Spring Boot failed to start."
-            cat application.log
-            exit 1
-          fi
+          echo "Spring Boot is up and running!"
 
-      - name: Print application logs on failure
-        if: failure()
-        run: cat application.log
-
-      - name: Insert test data into MySQL
-        run: |
-          docker exec test-db sh -c 'exec mysql -u testuser -ptestpassword testdb < /docker-entrypoint-initdb.d/test-data.sql'
+      - name: Insert test data
+        run: docker exec -i test-db mysql -u test_user -ptest terte_db < src/test/resources/sql/test-data.sql
 
       - name: Run tests
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://test-db:3306/testdb?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
-          SPRING_DATASOURCE_USERNAME: testuser
-          SPRING_DATASOURCE_PASSWORD: testpassword
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
+          SPRING_DATASOURCE_USERNAME: test_user
+          SPRING_DATASOURCE_PASSWORD: test
         run: ./gradlew :application:test
 
-      - name: Tear down Docker Compose
+      - name: Tear down MySQL container
         if: always()
-        run: docker compose -f application/docker-compose.yml down
+        run: docker stop test-db && docker rm test-db
