@@ -75,9 +75,7 @@ public class OrderServiceImpl implements OrderService {
                 for(MenuOption option: menu.getMenuOptions()){
                     if(option.getId().equals(selectedOption.getMenuOptionId())){
                         if(!option.getMultipleSelection()){
-                            long count = item.getSelectedOptions().stream()
-                                    .filter(selectedOptionArg -> selectedOptionArg.getMenuOptionId().equals(option.getId()))
-                                    .count();
+                            long count = item.getSelectedOptions().size();
                             if(count > 1){
                                 throw new IllegalArgumentException(
                                         String.format("Multiple selection not allowed for option '%s' in menu '%s'", option.getName(), menu.getName())
