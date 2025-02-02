@@ -1,4 +1,3 @@
--- 테이블 생성
 CREATE TABLE category (
                           id BIGINT NOT NULL AUTO_INCREMENT,
                           description VARCHAR(255),
@@ -78,7 +77,6 @@ CREATE TABLE selected_option_choice_ids (
                                             PRIMARY KEY (selected_option_id, selected_choice_ids)
 ) ENGINE=InnoDB;
 
--- 외래키 설정
 ALTER TABLE choice
     ADD CONSTRAINT FK_choice_menu_option
         FOREIGN KEY (menu_option_id) REFERENCES menu_option (id);
@@ -104,7 +102,6 @@ ALTER TABLE selected_option
         FOREIGN KEY (order_item_id) REFERENCES order_item (id);
 
 
---테스트 데이터 설정
 INSERT INTO category (id, name, store_id, description) VALUES
                                                            (1, 'COFFEE', 101, '커피 메뉴'),
                                                            (2, '빙수', 101, '맛있는 빙수'),
