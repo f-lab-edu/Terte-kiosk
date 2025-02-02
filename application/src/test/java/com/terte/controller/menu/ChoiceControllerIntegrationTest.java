@@ -5,7 +5,6 @@ import com.terte.TerteMainApplication;
 import com.terte.dto.menu.ChoiceCreateReqDTO;
 import com.terte.dto.menu.ChoiceUpdateReqDTO;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -13,12 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -34,23 +29,6 @@ public class ChoiceControllerIntegrationTest {
 
     @Autowired
     ObjectMapper objectMapper;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @BeforeAll
-    void setup() throws IOException {
-        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
-
-        String[] sqlStatements = sqlScript.split(";");
-
-        for (String sql : sqlStatements) {
-            sql = sql.trim();
-            if (!sql.isEmpty()) {
-                jdbcTemplate.execute(sql);
-            }
-        }
-    }
 
 
     @Test
@@ -91,7 +69,7 @@ public class ChoiceControllerIntegrationTest {
     @Test
     @DisplayName("선택지를 삭제한다.")
     void testDeleteChoice() throws Exception {
-        Long choiceId = 2L;
+        Long choiceId = 7L;
 
         mockMvc.perform(delete("/choices/" + choiceId)
                         .contentType(MediaType.APPLICATION_JSON)
