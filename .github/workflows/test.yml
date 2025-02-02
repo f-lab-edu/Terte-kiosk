@@ -35,6 +35,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Run Unit Tests
+        run: ./gradlew unitTest --fail-fast
+
       - name: Wait for MySQL to be fully ready
         run: |
           echo "Waiting for MySQL to initialize completely..."
@@ -58,13 +61,13 @@ jobs:
           
           mysql -h 127.0.0.1 -P 3307 -u test_user -ptest terte_db < $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
 
-      - name: Run tests
+      - name: Run Integration tests
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db
           SPRING_DATASOURCE_USERNAME: test_user
           SPRING_DATASOURCE_PASSWORD: test
           SPRING_JPA_HIBERNATE_DDL_AUTO: none
-        run: ./gradlew :application:test --fail-fast
+        run: ./gradlew :application:integrationTest --fail-fast
 
       - name: Print Spring Boot logs on failure
         if: failure()
