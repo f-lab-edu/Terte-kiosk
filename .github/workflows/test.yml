@@ -9,27 +9,25 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3307:3306
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: terte_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u test_user -ptest"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Start MySQL test container
-        run: |
-          docker run -d --name test-db \
-            -e MYSQL_ROOT_PASSWORD=root \
-            -e MYSQL_DATABASE=terte_db \
-            -e MYSQL_USER=test_user \
-            -e MYSQL_PASSWORD=test \
-            -p 3307:3306 \
-            mysql:8.0
-
-      - name: Wait for MySQL
-        run: |
-          echo "Waiting for MySQL..."
-          until docker exec test-db mysql -u test_user -ptest -e "SELECT 1"; do
-            sleep 2
-          done
-          echo "MySQL is ready."
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -41,7 +39,7 @@ jobs:
         run: |
           echo "Waiting for MySQL to initialize completely..."
           for i in {1..30}; do
-            if docker exec test-db mysql -u test_user -ptest -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'terte_db'" > /dev/null 2>&1; then
+            if mysql -h 127.0.0.1 -P 3307 -u test_user -ptest -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'terte_db'" > /dev/null 2>&1; then
               echo "MySQL is fully initialized!"
               exit 0
             fi
@@ -49,61 +47,25 @@ jobs:
             sleep 2
           done
           echo "MySQL failed to start in time."
-          docker logs test-db
           exit 1
 
-      - name: Run Spring Boot & Wait
-        env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
-          SPRING_DATASOURCE_USERNAME: test_user
-          SPRING_DATASOURCE_PASSWORD: test
-          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-        run: |
-          ./gradlew :application:bootRun | tee application.log &
-
-          echo "Waiting for Spring Boot process to be ready..."
-          for i in {1..18}; do
-          if ps aux | grep -v grep | grep "org.springframework.boot.loader.JarLauncher" > /dev/null; then
-          echo "Spring Boot process is running."
-          else
-          echo "Spring Boot process is NOT running yet... ($i/18)"
-          fi
-          
-          if lsof -i:8080 > /dev/null; then
-          echo "Spring Boot is listening on port 8080!"
-          exit 0
-          fi
-          
-          echo "Spring Boot is still starting... ($i/18)"
-          sleep 5
-          done
-          
-          echo "Spring Boot failed to start in time."
-          cat application.log
-          exit 1
-
-      - name: Print Spring Boot logs on failure
-        if: failure()
-        run: cat application.log
-
-      - name: Insert test data
+      - name: Create Table For Test & Insert test data
         run: |
           echo "Current directory:"
           pwd
           echo "Checking SQL file:"
           ls -al $GITHUB_WORKSPACE/application/src/test/resources/sql/
           
-          docker exec -i test-db mysql -u test_user -ptest terte_db -v < $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
-      
+          mysql -h 127.0.0.1 -P 3307 -u test_user -ptest terte_db < $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
 
       - name: Run tests
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db
           SPRING_DATASOURCE_USERNAME: test_user
           SPRING_DATASOURCE_PASSWORD: test
-          SPRING_JPA_HIBERNATE_DDL_AUTO: none  # 기존 데이터 유지
-        run: ./gradlew :application:test  --fail-fast
+          SPRING_JPA_HIBERNATE_DDL_AUTO: none
+        run: ./gradlew :application:test --fail-fast
 
-      - name: Tear down MySQL container
-        if: always()
-        run: docker stop test-db && docker rm test-db
+      - name: Print Spring Boot logs on failure
+        if: failure()
+        run: cat application.log
