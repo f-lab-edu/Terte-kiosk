@@ -6,8 +6,6 @@ import com.terte.TerteMainApplication;
 import com.terte.dto.menu.CategoryCreateReqDTO;
 import com.terte.dto.menu.CategoryResDTO;
 import com.terte.dto.menu.CategoryUpdateReqDTO;
-import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -15,16 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,24 +33,6 @@ class CategoryControllerIntegrationTest {
 
     @Autowired
     ObjectMapper objectMapper;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-
-    @BeforeAll
-    void setup() throws IOException {
-        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
-
-        String[] sqlStatements = sqlScript.split(";");
-
-        for (String sql : sqlStatements) {
-            sql = sql.trim();
-            if (!sql.isEmpty()) {
-                jdbcTemplate.execute(sql);
-            }
-        }
-    }
 
     @Test
     @DisplayName("카테고리 조회 시 모든 카테고리가 반환된다")
@@ -122,12 +97,7 @@ class CategoryControllerIntegrationTest {
     @Test
     @DisplayName("카테고리 수정 시 성공하면 200 OK와 수정된 카테고리 ID를 반환한다")
     void testUpdateCategorySuccess() throws Exception {
-        CategoryCreateReqDTO categoryCreateReqDTO = new CategoryCreateReqDTO("New Category", "New Category Description");
-        String res = mockMvc.perform(post("/categories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(categoryCreateReqDTO))).andReturn().getResponse().getContentAsString();
-        JSONObject jsonObject = new JSONObject(res);
-        Long targetId = jsonObject.getJSONObject("data").getLong("id");
+        Long targetId = 3L;
 
         CategoryUpdateReqDTO categoryUpdateReqDTO = CategoryUpdateReqDTO.builder()
                 .id(targetId)
@@ -158,12 +128,7 @@ class CategoryControllerIntegrationTest {
     @Test
     @DisplayName("카테고리 삭제 시 성공하면 200 OK와 삭제된 카테고리 ID를 반환한다")
     void testDeleteCategorySuccess() throws Exception {
-        CategoryCreateReqDTO categoryCreateReqDTO = new CategoryCreateReqDTO("New Category", "New Category Description");
-        String res = mockMvc.perform(post("/categories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(categoryCreateReqDTO))).andReturn().getResponse().getContentAsString();
-        JSONObject jsonObject = new JSONObject(res);
-        Long targetId = jsonObject.getJSONObject("data").getLong("id");
+        Long targetId = 4L;
         String deleteReqUrl = "/categories/" + targetId;
         mockMvc.perform(delete(deleteReqUrl)
                         .contentType(MediaType.APPLICATION_JSON))

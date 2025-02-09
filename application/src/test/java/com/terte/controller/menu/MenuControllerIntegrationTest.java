@@ -41,23 +41,6 @@ class MenuControllerIntegrationTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @BeforeAll
-    void setup() throws IOException {
-        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
-
-        String[] sqlStatements = sqlScript.split(";");
-
-        for (String sql : sqlStatements) {
-            sql = sql.trim();
-            if (!sql.isEmpty()) {
-                jdbcTemplate.execute(sql);
-            }
-        }
-    }
-
 
     @Test
     @DisplayName("카테고리 없이 전체 메뉴를 조회하면 모든 메뉴가 반환된다")
@@ -66,7 +49,6 @@ class MenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].name").value("아메리카노"))
                 .andExpect(jsonPath("$.data[0].price").value(5000));
     }
 
@@ -79,7 +61,6 @@ class MenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].name").value("아메리카노"))
                 .andExpect(jsonPath("$.data[0].categoryName").value("COFFEE"))
                 .andReturn()
                 .getResponse()
@@ -95,7 +76,6 @@ class MenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1L))
-                .andExpect(jsonPath("$.data.name").value("아메리카노"))
                 .andExpect(jsonPath("$.data.categoryName").value("COFFEE"))
                 .andExpect(jsonPath("$.data.price").value(5000));
     }

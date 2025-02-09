@@ -1,0 +1,72 @@
+name: Run Tests on Push
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Run Unit Tests
+        run: ./gradlew unitTest --fail-fast
+
+  integration-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3307:3306
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: terte_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u test_user -ptest"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Create Table For Test & Insert test data
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Checking SQL file:"
+          ls -al $GITHUB_WORKSPACE/application/src/test/resources/sql/
+          
+          mysql -h 127.0.0.1 -P 3307 -u test_user -ptest terte_db < $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
+
+      - name: Run Integration tests
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db
+          SPRING_DATASOURCE_USERNAME: test_user
+          SPRING_DATASOURCE_PASSWORD: test
+          SPRING_JPA_HIBERNATE_DDL_AUTO: none
+        run: ./gradlew :application:integrationTest
+
+      - name: Print Spring Boot logs on failure
+        if: failure()
+        run: cat application.log

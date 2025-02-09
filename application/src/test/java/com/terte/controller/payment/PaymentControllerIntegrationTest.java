@@ -42,23 +42,6 @@ class PaymentControllerIntegrationTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @BeforeAll
-    void setup() throws IOException {
-        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
-
-        String[] sqlStatements = sqlScript.split(";");
-
-        for (String sql : sqlStatements) {
-            sql = sql.trim();
-            if (!sql.isEmpty()) {
-                jdbcTemplate.execute(sql);
-            }
-        }
-    }
-
     @Test
     @DisplayName("결제 조회 시 결제 정보가 반환된다")
     void testGetPayment() throws Exception {
