@@ -50,20 +50,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Wait for MySQL to be fully ready
-        run: |
-          echo "Waiting for MySQL to initialize completely..."
-          for i in {1..30}; do
-            if mysql -h 127.0.0.1 -P 3307 -u test_user -ptest -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'terte_db'" > /dev/null 2>&1; then
-              echo "MySQL is fully initialized!"
-              exit 0
-            fi
-            echo "MySQL is not ready yet... ($i/30)"
-            sleep 2
-          done
-          echo "MySQL failed to start in time."
-          exit 1
-
       - name: Create Table For Test & Insert test data
         run: |
           echo "Current directory:"
@@ -79,7 +65,7 @@ jobs:
           SPRING_DATASOURCE_USERNAME: test_user
           SPRING_DATASOURCE_PASSWORD: test
           SPRING_JPA_HIBERNATE_DDL_AUTO: none
-        run: ./gradlew :application:integrationTest --fail-fast
+        run: ./gradlew :application:integrationTest
 
       - name: Print Spring Boot logs on failure
         if: failure()
