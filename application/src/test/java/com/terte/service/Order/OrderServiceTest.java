@@ -21,6 +21,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -44,7 +46,8 @@ public class OrderServiceTest {
         List<Order> orderList = List.of(new Order(1L, storeId, OrderStatus.ORDERED,10000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null), new Order(2L, storeId, OrderStatus.ORDERED,10000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null));
         when(orderRepository.findByStoreId(storeId)).thenReturn(orderList);
 
-        List<Order> result = orderService.getAllOrders(storeId, null);
+        CompletableFuture<List<Order>> futureResult = orderService.getAllOrders(storeId, null);
+        List<Order> result = futureResult.join();
 
         assertEquals(2, result.size());
         verify(orderRepository,times(1)).findByStoreId(storeId);
@@ -57,7 +60,8 @@ public class OrderServiceTest {
         Order order = new Order(id, 1L, OrderStatus.ORDERED,12000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
 
-        Order result = orderService.getOrderById(id);
+        CompletableFuture<Order> futureResult = orderService.getOrderById(id);
+        Order result = futureResult.join();
 
         assertEquals(id, result.getId());
         verify(orderRepository,times(1)).findById(id);
@@ -69,7 +73,12 @@ public class OrderServiceTest {
         Long id = 1L;
         when(orderRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> orderService.getOrderById(id));
+        // When
+        CompletableFuture<Order> futureResult = orderService.getOrderById(id);
+
+        // Then
+        ExecutionException exception = assertThrows(ExecutionException.class, futureResult::get);
+        assertTrue(exception.getCause() instanceof NotFoundException);
         verify(orderRepository,times(1)).findById(id);
     }
 
@@ -101,7 +110,9 @@ public class OrderServiceTest {
         when(menuService.getMenuByids(List.of(orderItem.getMenuId()))).thenReturn(List.of(new Menu(1L,"menu",1000,new Category(),1L,"image","desc",List.of(new MenuOption(1L,"option",true,false,null,null)))));
 
         // When
-        Order result = orderService.createOrder(order);
+
+        CompletableFuture<Order> futureResult = orderService.createOrder(order);
+        Order result = futureResult.join();
 
         // Then
         assertNotNull(result);
@@ -116,7 +127,8 @@ public class OrderServiceTest {
         when(orderRepository.findById(order.getId())).thenReturn(Optional.of(order));
         when(orderRepository.save(order)).thenReturn(order);
 
-        Order result = orderService.updateOrder(order);
+        CompletableFuture<Order> futureResult = orderService.updateOrder(order);
+        Order result = futureResult.join();
 
         assertEquals(order, result);
         verify(orderRepository,times(1)).findById(order.getId());
@@ -130,7 +142,12 @@ public class OrderServiceTest {
         Order order = new Order(1L, 1L, OrderStatus.ORDERED, 1000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
         when(orderRepository.findById(order.getId())).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> orderService.updateOrder(order));
+
+        CompletableFuture<Order> futureResult = orderService.updateOrder(order);
+
+
+        ExecutionException exception = assertThrows(ExecutionException.class, futureResult::get);
+        assertTrue(exception.getCause() instanceof NotFoundException);
         verify(orderRepository,times(1)).findById(order.getId());
         verify(orderRepository,never()).save(order);
     }
@@ -154,7 +171,10 @@ public class OrderServiceTest {
         Long id = 1L;
         when(orderRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> orderService.deleteOrder(id));
+        CompletableFuture<Void> futureResult = orderService.deleteOrder(id);
+
+        ExecutionException exception = assertThrows(ExecutionException.class, futureResult::get);
+        assertTrue(exception.getCause() instanceof NotFoundException);
         verify(orderRepository,times(1)).findById(id);
         verify(orderRepository,never()).deleteById(id);
     }

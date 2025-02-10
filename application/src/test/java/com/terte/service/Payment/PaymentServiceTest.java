@@ -15,9 +15,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,7 +36,8 @@ public class PaymentServiceTest {
         List<Payment> paymentList = List.of(new Payment(1L, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, 1L, 1000L), new Payment(2L, storeId, PaymentMethod.CREDIT_CARD, PaymentStatus.PAYMENT_COMPLETED, 2L, 1000L));
         when(paymentRepository.findByStoreId(storeId)).thenReturn(paymentList);
 
-        List<Payment> result = paymentService.getAllPayments(storeId);
+        CompletableFuture<List<Payment>> futureResult = paymentService.getAllPayments(storeId);
+        List<Payment> result = futureResult.join();
 
         assertEquals(2, result.size());
         verify(paymentRepository,times(1)).findByStoreId(storeId);
@@ -48,7 +50,8 @@ public class PaymentServiceTest {
         Payment payment = new Payment(id, 1L, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, 1L, 1000L);
         when(paymentRepository.findById(id)).thenReturn(Optional.of(payment));
 
-        Payment result = paymentService.getPaymentById(id);
+        CompletableFuture<Payment> futureResult = paymentService.getPaymentById(id);
+        Payment result = futureResult.join();
 
         assertEquals(id, result.getId());
         verify(paymentRepository,times(1)).findById(id);
@@ -60,7 +63,8 @@ public class PaymentServiceTest {
         Payment payment = new Payment(1L, 1L, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, 1L, 1000L);
         when(paymentRepository.save(payment)).thenReturn(payment);
 
-        Payment result = paymentService.createPayment(payment);
+        CompletableFuture<Payment> futureResult = paymentService.createPayment(payment);
+        Payment result = futureResult.join();
 
         assertEquals(payment, result);
         verify(paymentRepository,times(1)).save(payment);
@@ -74,7 +78,8 @@ public class PaymentServiceTest {
         when(paymentRepository.findById(id)).thenReturn(Optional.of(payment));
         when(paymentRepository.save(payment)).thenReturn(payment);
 
-        Payment result = paymentService.cancelPayment(id);
+        CompletableFuture<Payment> futureResult = paymentService.cancelPayment(id);
+        Payment result = futureResult.join();
 
         assertEquals(PaymentStatus.PAYMENT_CANCELLED, result.getStatus());
         verify(paymentRepository,times(1)).findById(id);
@@ -87,7 +92,9 @@ public class PaymentServiceTest {
         Long id = 1L;
         when(paymentRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> paymentService.cancelPayment(id));
+        CompletableFuture<Payment> future = paymentService.cancelPayment(id);
+        ExecutionException exception =  assertThrows(ExecutionException.class, future::get);
+        assertTrue(exception.getCause() instanceof NotFoundException);
         verify(paymentRepository,times(1)).findById(id);
     }
 

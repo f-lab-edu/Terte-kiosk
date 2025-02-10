@@ -9,8 +9,31 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.util.concurrent.CompletionException;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResDTO<String>> handleGlobalException(Exception ex) {
+        Throwable actualException = (ex instanceof CompletionException && ex.getCause() != null)
+                ? ex.getCause()
+                : ex;
+
+        if (actualException instanceof NotFoundException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResDTO.error(actualException.getMessage()));
+        } else if (actualException instanceof IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResDTO.error(actualException.getMessage()));
+        } else if (actualException instanceof MethodArgumentNotValidException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResDTO.error("Validation error: " + actualException.getMessage()));
+        } else if (actualException instanceof MethodArgumentTypeMismatchException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResDTO.error("Invalid parameter: " + actualException.getMessage()));
+        } else if (actualException instanceof RuntimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResDTO.error("Unexpected error: " + actualException.getMessage()));
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResDTO.error("Unhandled exception: " + actualException.getMessage()));
+    }
+
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResDTO<String>> handleRuntimeException(RuntimeException ex) {
