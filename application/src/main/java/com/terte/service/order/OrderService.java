@@ -5,13 +5,14 @@ import com.terte.entity.order.Order;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public interface OrderService {
-    List<Order> getAllOrders(Long storeId, OrderStatus status);
-    Order getOrderById(Long id);
-    Order createOrder(Order order);
-    Order updateOrder(Order order);
-    void deleteOrder(Long id);
+    CompletableFuture<List<Order>> getAllOrders(Long storeId, OrderStatus status);
+    CompletableFuture<Order> getOrderById(Long id);
+    CompletableFuture<Order> createOrder(Order order);
+    CompletableFuture<Order> updateOrder(Order order);
+    CompletableFuture<Void> deleteOrder(Long id);
 
 }

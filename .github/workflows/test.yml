@@ -65,8 +65,10 @@ jobs:
           SPRING_DATASOURCE_USERNAME: test_user
           SPRING_DATASOURCE_PASSWORD: test
           SPRING_JPA_HIBERNATE_DDL_AUTO: none
-        run: ./gradlew :application:integrationTest
+        run: ./gradlew :application:integrationTest --info | tee gradle-test.log
+      
 
-      - name: Print Spring Boot logs on failure
+      - name: Print Gradle test logs on failure
         if: failure()
-        run: cat application.log
+        run: cat gradle-test.log
+

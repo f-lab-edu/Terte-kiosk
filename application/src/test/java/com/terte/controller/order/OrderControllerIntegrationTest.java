@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -65,8 +66,11 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 상세 조회 시 주문 정보가 반환된다")
     void testGetOrderById() throws Exception {
-        mockMvc.perform(get("/orders/1")
+        MvcResult mvcResult = mockMvc.perform(get("/orders/1")
                         .contentType(MediaType.APPLICATION_JSON))
+                        .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.orderId").value(1L))
                 .andExpect(jsonPath("$.data.tableNumber").exists())
