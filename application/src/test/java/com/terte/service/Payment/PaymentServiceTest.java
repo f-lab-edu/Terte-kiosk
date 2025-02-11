@@ -6,6 +6,7 @@ import com.terte.common.exception.NotFoundException;
 import com.terte.entity.payment.Payment;
 import com.terte.repository.payment.PaymentRepository;
 import com.terte.service.payment.PaymentServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,6 +30,13 @@ public class PaymentServiceTest {
 
     @InjectMocks
     PaymentServiceImpl paymentService;
+
+    private final Executor directExecutor = Runnable::run;
+
+    @BeforeEach
+    void setUp() {
+        paymentService = new PaymentServiceImpl(paymentRepository, directExecutor);
+    }
 
     @Test
     @DisplayName("모든 결제 조회")
@@ -96,6 +105,7 @@ public class PaymentServiceTest {
         ExecutionException exception =  assertThrows(ExecutionException.class, future::get);
         assertTrue(exception.getCause() instanceof NotFoundException);
         verify(paymentRepository,times(1)).findById(id);
+        verify(paymentRepository,never()).save(any());
     }
 
 

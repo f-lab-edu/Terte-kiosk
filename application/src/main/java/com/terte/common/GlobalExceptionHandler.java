@@ -13,6 +13,12 @@ import java.util.concurrent.CompletionException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * 비동기 코드는 CompletionException으로 감싸져 있음
+     * CompletionException의 경우 getCause()로 원본 예외를 꺼내야 함
+     * 따라서 cause가 있는 경우 cause를 처리하고, 없는 경우는 원본 예외를 처리
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResDTO<String>> handleGlobalException(Exception ex) {
         Throwable actualException = (ex instanceof CompletionException && ex.getCause() != null)

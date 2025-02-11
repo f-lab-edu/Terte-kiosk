@@ -19,43 +19,50 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final OptionService optionService;
     private final MenuService menuService;
+    private final Executor httpTaskExecutor;
     @Override
+    @Async("httpTaskExecutor")
     public CompletableFuture<List<Order>> getAllOrders(Long storeId, OrderStatus status) {
         return CompletableFuture.supplyAsync(() -> {
             List<Order> orders;
+
             if (status == null) {
                 orders = orderRepository.findByStoreId(storeId);
             } else {
                 orders = orderRepository.findByStoreIdAndStatus(storeId, status);
             }
+
             if (orders.isEmpty()) {
                 throw new NotFoundException("Order not found");
             }
+
             return orders;
-        });
+        }, httpTaskExecutor);
     }
 
     @Override
     public CompletableFuture<Order> getOrderById(Long id) {
         return CompletableFuture.supplyAsync(() ->
-                orderRepository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("Order not found"))
-        );
+                        orderRepository.findById(id)
+                                .orElseThrow(() -> new NotFoundException("Order not found"))
+                , httpTaskExecutor);
     }
+
 
 
     @Override
     @Transactional
     public CompletableFuture<Order> createOrder(Order order) {
         return CompletableFuture.supplyAsync(() -> {
+
             Map<Long, Menu> menuCache = menuService.getMenuByids(order.getOrderItems().stream().map(OrderItem::getMenuId).collect(Collectors.toList()))
                     .stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
 
@@ -98,11 +105,12 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
             return orderRepository.save(order);
-        });
+        }, httpTaskExecutor);
+
+
     }
 
     @Override
-    @Async
     public CompletableFuture<Order> updateOrder(Order order) {
         return CompletableFuture.supplyAsync(() -> {
             Order existingOrder = orderRepository.findById(order.getId()).orElseThrow(() -> new NotFoundException("Order not found"));
@@ -119,11 +127,11 @@ public class OrderServiceImpl implements OrderService {
                 order.setTableNumber(existingOrder.getTableNumber());
             }
             return orderRepository.save(order);
-        });
+        }, httpTaskExecutor);
     }
 
     @Override
-    @Async
+    @Async("httpTaskExecutor")
     public CompletableFuture<Void> deleteOrder(Long id) {
         return CompletableFuture.runAsync(() -> {
             orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Order not found"));

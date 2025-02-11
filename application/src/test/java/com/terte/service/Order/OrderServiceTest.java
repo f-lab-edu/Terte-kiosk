@@ -11,7 +11,10 @@ import com.terte.entity.order.OrderItem;
 import com.terte.entity.order.SelectedOption;
 import com.terte.repository.order.OrderRepository;
 import com.terte.service.menu.MenuService;
+import com.terte.service.order.OrderService;
 import com.terte.service.order.OrderServiceImpl;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +26,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -37,6 +42,15 @@ public class OrderServiceTest {
 
     @Mock
     MenuService menuService;
+
+    private final Executor directExecutor = Runnable::run;
+
+
+    @BeforeEach
+    void setUp() {
+        orderService = new OrderServiceImpl(orderRepository, menuService, directExecutor);
+    }
+
 
 
     @Test
