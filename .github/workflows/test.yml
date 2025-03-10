@@ -39,6 +39,25 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+
+      kafka:
+        image: confluentinc/cp-kafka:latest
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_ZOOKEEPER_CONNECT: "localhost:2181"
+          KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+          KAFKA_BROKER_ID: 1
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        options: >-
+          --health-cmd="kafka-topics --bootstrap-server localhost:9092 --list || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
       - name: Checkout code
