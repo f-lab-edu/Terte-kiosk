@@ -86,11 +86,18 @@ jobs:
           
           mysql -h 127.0.0.1 -P 3307 -u test_user -ptest terte_db < $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
 
+      - name: Copy Redis test data to container
+        run: |
+          echo "Copying Redis test data to Redis container..."
+          docker cp $GITHUB_WORKSPACE/application/src/test/resources/redis/test-data.txt $(docker ps -q --filter ancestor=redis:latest):/test-data.txt
+          echo "Redis test data copied successfully."
+
       - name: Insert test data into Redis
         run: |
           echo "Loading Redis test data..."
-          docker exec $(docker ps -q --filter ancestor=redis:latest) sh -c "redis-cli < $GITHUB_WORKSPACE/application/src/test/resources/redis/test-data.txt"
+          docker exec $(docker ps -q --filter ancestor=redis:latest) sh -c "redis-cli < /test-data.txt"
           echo "Redis test data inserted successfully."
+      
       
 
       - name: Run Integration tests
