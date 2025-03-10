@@ -54,6 +54,7 @@ jobs:
           KAFKA_LISTENERS: "PLAINTEXT://:9092"
           KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
           KAFKA_LOG_DIRS: "/tmp/kraft-logs"
+          KAFKA_CLUSTER_ID: ${{ env.KAFKA_CLUSTER_ID }}
         options: >-
           --health-cmd="kafka-topics --bootstrap-server localhost:9092 --list || exit 1"
           --health-interval=10s
@@ -63,6 +64,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Generate Kafka Cluster ID
+        run: echo "KAFKA_CLUSTER_ID=$(docker run --rm confluentinc/cp-kafka:latest kafka-storage random-uuid)" >> $GITHUB_ENV
 
       - name: Set up JDK
         uses: actions/setup-java@v3
