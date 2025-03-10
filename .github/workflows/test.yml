@@ -39,22 +39,33 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+
       redis:
         image: redis:latest
         ports:
           - 6379:6379
+
+      zookeeper:
+        image: confluentinc/cp-zookeeper:latest
+        ports:
+          - 2181:2181
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+        options: >-
+          --health-cmd="zkCli.sh -server localhost:2181 get /zookeeper/config || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
       kafka:
         image: confluentinc/cp-kafka:latest
         ports:
           - 9092:9092
         env:
-          KAFKA_PROCESS_ROLES: "broker"
-          KAFKA_NODE_ID: 1
-          KAFKA_LISTENERS: "PLAINTEXT://:9092"
+          KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
           KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
-          KAFKA_LOG_DIRS: "/tmp/kraft-logs"
-          KAFKA_CLUSTER_ID: ${{ env.KAFKA_CLUSTER_ID }}
+          KAFKA_BROKER_ID: 1
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
         options: >-
           --health-cmd="kafka-topics --bootstrap-server localhost:9092 --list || exit 1"
           --health-interval=10s
@@ -64,9 +75,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Generate Kafka Cluster ID
-        run: echo "KAFKA_CLUSTER_ID=$(docker run --rm confluentinc/cp-kafka:latest kafka-storage random-uuid)" >> $GITHUB_ENV
 
       - name: Set up JDK
         uses: actions/setup-java@v3
