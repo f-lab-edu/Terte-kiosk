@@ -49,10 +49,11 @@ jobs:
         ports:
           - 9092:9092
         env:
-          KAFKA_ZOOKEEPER_CONNECT: "localhost:2181"
+          KAFKA_PROCESS_ROLES: "broker"
+          KAFKA_NODE_ID: 1
+          KAFKA_LISTENERS: "PLAINTEXT://:9092"
           KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
-          KAFKA_BROKER_ID: 1
-          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+          KAFKA_LOG_DIRS: "/tmp/kraft-logs"
         options: >-
           --health-cmd="kafka-topics --bootstrap-server localhost:9092 --list || exit 1"
           --health-interval=10s
