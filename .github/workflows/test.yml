@@ -89,8 +89,9 @@ jobs:
       - name: Insert test data into Redis
         run: |
           echo "Loading Redis test data..."
-          redis-cli -h 127.0.0.1 -p 6379 < $GITHUB_WORKSPACE/application/src/test/resources/redis/test-data.txt
+          docker exec $(docker ps -q --filter ancestor=redis:latest) sh -c "redis-cli < /test-data.txt"
           echo "Redis test data inserted successfully."
+      
 
       - name: Run Integration tests
         env:
