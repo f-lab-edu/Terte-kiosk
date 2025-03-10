@@ -1,0 +1,4 @@
+FLUSHALL
+ZADD popular-menus:1 10 "101"
+ZADD popular-menus:1 20 "102"
+ZADD popular-menus:1 30 "103"

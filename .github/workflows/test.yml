@@ -86,6 +86,12 @@ jobs:
           
           mysql -h 127.0.0.1 -P 3307 -u test_user -ptest terte_db < $GITHUB_WORKSPACE/application/src/test/resources/sql/test-data.sql
 
+      - name: Insert test data into Redis
+        run: |
+          echo "Loading Redis test data..."
+          redis-cli -h 127.0.0.1 -p 6379 < $GITHUB_WORKSPACE/application/src/test/resources/redis/test-data.txt
+          echo "Redis test data inserted successfully."
+
       - name: Run Integration tests
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/terte_db

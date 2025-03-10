@@ -13,7 +13,7 @@ import java.util.List;
 public class PopularMenuController {
 
     private final PopularMenuService popularMenuService;
-    @GetMapping
+    @GetMapping("/popular-menus")
     public List<Long> getPopularMenus(@RequestParam(defaultValue = "5") int topN) {
         Long storeId = 1L;
         return popularMenuService.getPopularMenus(storeId, topN);
