@@ -1,6 +1,7 @@
 package com.terte.service.menu;
 
 
+import com.terte.entity.menu.Menu;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,6 +10,6 @@ import java.util.List;
 public interface PopularMenuService {
 
     public void incrementMenuCount(Long storeId, Long menuId);
-    public List<Long> getPopularMenus(Long storeId, int topN);
+    public List<Menu> getPopularMenus(Long storeId, int topN);
 
 }

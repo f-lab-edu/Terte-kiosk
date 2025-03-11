@@ -1,4 +1,9 @@
 FLUSHALL
-ZADD popular-menus:1 10 "101"
-ZADD popular-menus:1 20 "102"
-ZADD popular-menus:1 30 "103"
+
+HSET store:menu_counts:1 "101" 10
+HSET store:menu_counts:1 "102" 20
+HSET store:menu_counts:1 "103" 30
+
+ZADD store:popular:1 10 "101"
+ZADD store:popular:1 20 "102"
+ZADD store:popular:1 30 "103"

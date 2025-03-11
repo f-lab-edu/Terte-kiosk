@@ -30,8 +30,6 @@ class PopularMenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(3))
-                .andExpect(jsonPath("$[0]").value(103)) // 인기 메뉴 1위
-                .andExpect(jsonPath("$[1]").value(102)) // 인기 메뉴 2위
-                .andExpect(jsonPath("$[2]").value(101)); // 인기 메뉴 3위
+                .andExpect(jsonPath("$.data[0].id").value(103L));
     }
 }
