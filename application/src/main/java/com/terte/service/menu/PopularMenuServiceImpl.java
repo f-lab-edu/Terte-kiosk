@@ -26,13 +26,20 @@ public class PopularMenuServiceImpl implements PopularMenuService {
         String hashKey = MENU_COUNT_KEY_PREFIX + storeId; // Hash 키: store:menu_counts:{storeId}
         String zSetKey = POPULAR_MENU_KEY_PREFIX + storeId; // Sorted Set 키: store:popular:{storeId}
 
-        Long orderedCount = redisTemplate.opsForHash().increment(hashKey, menuId.toString(), 1);
-        redisTemplate.opsForZSet().add(zSetKey, menuId.toString(), orderedCount);
+        Long orderCount = redisTemplate.opsForHash().increment(hashKey, menuId.toString(), 1);
 
-        Long zSetSize = redisTemplate.opsForZSet().size(zSetKey);
+        //가장 최근에 들어온 메뉴의 우선순위를 높이기 위해서 현재 시간을 더해준다.
+        long nowSec = System.currentTimeMillis() / 1000;
+        long compositeScore = orderCount * 10000000000L + nowSec;
 
+        redisTemplate.opsForZSet().add(zSetKey, menuId.toString(), compositeScore);
+
+
+        Long zSetSize = redisTemplate.opsForZSet().zCard(zSetKey);
+        // 인기 메뉴 개수가 MAX_POPULAR_MENUS를 초과하면
+        // 1순위: 가장 인기없는 메뉴 삭제
+        // 2순위: 가장 오래된 메뉴 삭제
         if(zSetSize!=null && zSetSize > MAX_POPULAR_MENUS) {
-            //TODO: 가장 주문이 들어온지이 오래된 메뉴를 제거하도록 변경, 확률적으로 오랫동안 주문이 없던 메뉴를 제거하도록 한다.
             redisTemplate.opsForZSet().removeRange(zSetKey, 0, zSetSize - MAX_POPULAR_MENUS - 1);
         }
 
