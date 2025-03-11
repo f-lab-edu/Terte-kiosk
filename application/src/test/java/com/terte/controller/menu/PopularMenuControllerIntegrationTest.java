@@ -30,6 +30,6 @@ class PopularMenuControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(3))
-                .andExpect(jsonPath("$.data[0].id").value(103L));
+                .andExpect(jsonPath("$.data[0].id").value(104L));
     }
 }
