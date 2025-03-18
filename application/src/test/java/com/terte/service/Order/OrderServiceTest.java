@@ -173,7 +173,8 @@ public class OrderServiceTest {
         Order order = new Order(id, 1L, OrderStatus.ORDERED, 1000L, List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
 
-        orderService.deleteOrder(id);
+        CompletableFuture<Void> futureResult = orderService.deleteOrder(id);
+        futureResult.join();
 
         verify(orderRepository,times(1)).findById(id);
         verify(orderRepository,times(1)).deleteById(id);
@@ -186,6 +187,7 @@ public class OrderServiceTest {
         when(orderRepository.findById(id)).thenReturn(Optional.empty());
 
         CompletableFuture<Void> futureResult = orderService.deleteOrder(id);
+        futureResult.join();
 
         ExecutionException exception = assertThrows(ExecutionException.class, futureResult::get);
         assertTrue(exception.getCause() instanceof NotFoundException);
