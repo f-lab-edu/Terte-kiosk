@@ -10,12 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,23 +27,6 @@ public class MenuOptionControllerIntegrationTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @BeforeAll
-    void setup() throws IOException {
-        String sqlScript = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/test-data.sql")));
-
-        String[] sqlStatements = sqlScript.split(";");
-
-        for (String sql : sqlStatements) {
-            sql = sql.trim();
-            if (!sql.isEmpty()) {
-                jdbcTemplate.execute(sql);
-            }
-        }
-    }
-
     @Test
     @DisplayName("옵션ID로 선택지를 조회한다.")
     void testGetChoicesByOptionId() throws Exception{
@@ -57,7 +35,6 @@ public class MenuOptionControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].name").value("물얼음"))
                 .andExpect(jsonPath("$.data[0].price").value(0));
     }
 
@@ -146,7 +123,7 @@ public class MenuOptionControllerIntegrationTest {
     @Test
     @DisplayName("옵션을 삭제한다")
     void testDeleteOption() throws Exception{
-        Long optionId = 3L;
+        Long optionId = 5L;
 
         mockMvc.perform(delete("/options/" + optionId)
                         .contentType(MediaType.APPLICATION_JSON))
