@@ -1,7 +1,7 @@
 package com.terte.service.Order;
 
-import com.terte.common.enums.OrderType;
 import com.terte.common.enums.OrderStatus;
+import com.terte.common.enums.OrderType;
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.category.Category;
 import com.terte.entity.menu.Menu;
@@ -9,11 +9,10 @@ import com.terte.entity.menu.MenuOption;
 import com.terte.entity.order.Order;
 import com.terte.entity.order.OrderItem;
 import com.terte.entity.order.SelectedOption;
+import com.terte.event.OrderEventProducer;
 import com.terte.repository.order.OrderRepository;
 import com.terte.service.menu.MenuService;
-import com.terte.service.order.OrderService;
 import com.terte.service.order.OrderServiceImpl;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +26,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -42,13 +40,15 @@ public class OrderServiceTest {
 
     @Mock
     MenuService menuService;
+    @Mock
+    OrderEventProducer orderEventProducer;
 
     private final Executor directExecutor = Runnable::run;
 
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderServiceImpl(orderRepository, menuService, directExecutor);
+        orderService = new OrderServiceImpl(orderRepository, menuService, directExecutor, orderEventProducer);
     }
 
 
@@ -173,7 +173,8 @@ public class OrderServiceTest {
         Order order = new Order(id, 1L, OrderStatus.ORDERED, 1000L, List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
 
-        orderService.deleteOrder(id);
+        CompletableFuture<Void> futureResult = orderService.deleteOrder(id);
+        futureResult.join();
 
         verify(orderRepository,times(1)).findById(id);
         verify(orderRepository,times(1)).deleteById(id);
@@ -186,6 +187,7 @@ public class OrderServiceTest {
         when(orderRepository.findById(id)).thenReturn(Optional.empty());
 
         CompletableFuture<Void> futureResult = orderService.deleteOrder(id);
+        futureResult.join();
 
         ExecutionException exception = assertThrows(ExecutionException.class, futureResult::get);
         assertTrue(exception.getCause() instanceof NotFoundException);

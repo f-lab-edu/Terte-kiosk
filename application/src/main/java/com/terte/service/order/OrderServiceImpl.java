@@ -2,14 +2,16 @@ package com.terte.service.order;
 
 import com.terte.common.enums.OrderStatus;
 import com.terte.common.exception.NotFoundException;
+import com.terte.dto.order.OrderEventDTO;
+import com.terte.dto.order.OrderItemDTO;
 import com.terte.entity.menu.Menu;
 import com.terte.entity.menu.MenuOption;
 import com.terte.entity.order.Order;
 import com.terte.entity.order.OrderItem;
 import com.terte.entity.order.SelectedOption;
+import com.terte.event.OrderEventProducer;
 import com.terte.repository.order.OrderRepository;
 import com.terte.service.menu.MenuService;
-import com.terte.service.menu.OptionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -18,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final MenuService menuService;
     private final Executor httpTaskExecutor;
+    private final OrderEventProducer orderEventProducer;
     @Override
     @Async("httpTaskExecutor")
     public CompletableFuture<List<Order>> getAllOrders(Long storeId, OrderStatus status) {
@@ -104,6 +106,11 @@ public class OrderServiceImpl implements OrderService {
                     }
                 }
             }
+
+            //카프카 이벤트 발행
+            OrderEventDTO orderEvent = new OrderEventDTO(order.getStoreId(), order.getOrderItems().stream().map(OrderItemDTO::from).collect(Collectors.toList()));
+            orderEventProducer.sendOrderEvent(orderEvent);
+
             return orderRepository.save(order);
         }, httpTaskExecutor);
 

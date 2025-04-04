@@ -1,0 +1,14 @@
+FLUSHALL
+
+HSET store:menu_counts:1 "101" 5
+HSET store:menu_counts:1 "102" 12
+HSET store:menu_counts:1 "103" 8
+HSET store:menu_counts:1 "104" 15
+HSET store:menu_counts:1 "105" 3
+
+
+ZADD store:popular:1 50000000000 "101"   # 주문 5회
+ZADD store:popular:1 120000000000 "102"  # 주문 12회
+ZADD store:popular:1 80000000000 "103"   # 주문 8회
+ZADD store:popular:1 150000000000 "104"  # 주문 15회
+ZADD store:popular:1 30000000000 "105"   # 주문 3회
