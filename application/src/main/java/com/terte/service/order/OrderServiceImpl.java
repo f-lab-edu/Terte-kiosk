@@ -12,106 +12,130 @@ import com.terte.service.menu.MenuService;
 import com.terte.service.menu.OptionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final OptionService optionService;
     private final MenuService menuService;
+    private final Executor httpTaskExecutor;
     @Override
-    public List<Order> getAllOrders(Long storeId, OrderStatus status) {
-        List<Order> orders;
-        if(status == null){
-            orders =  orderRepository.findByStoreId(storeId);
-        }else{
-            orders = orderRepository.findByStoreIdAndStatus(storeId,status);
-        }
-        if(orders.isEmpty()){
-            throw new NotFoundException("Order not found");
-        }
-        return orders;
+    @Async("httpTaskExecutor")
+    public CompletableFuture<List<Order>> getAllOrders(Long storeId, OrderStatus status) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Order> orders;
+
+            if (status == null) {
+                orders = orderRepository.findByStoreId(storeId);
+            } else {
+                orders = orderRepository.findByStoreIdAndStatus(storeId, status);
+            }
+
+            if (orders.isEmpty()) {
+                throw new NotFoundException("Order not found");
+            }
+
+            return orders;
+        }, httpTaskExecutor);
     }
 
     @Override
-    public Order getOrderById(Long id) {
-        return orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Order not found"));
+    public CompletableFuture<Order> getOrderById(Long id) {
+        return CompletableFuture.supplyAsync(() ->
+                        orderRepository.findById(id)
+                                .orElseThrow(() -> new NotFoundException("Order not found"))
+                , httpTaskExecutor);
     }
+
+
 
     @Override
     @Transactional
-    public Order createOrder(Order order) {
-        Map<Long, Menu> menuCache = menuService.getMenuByids(order.getOrderItems().stream().map(OrderItem::getMenuId).collect(Collectors.toList()))
-                .stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
+    public CompletableFuture<Order> createOrder(Order order) {
+        return CompletableFuture.supplyAsync(() -> {
+
+            Map<Long, Menu> menuCache = menuService.getMenuByids(order.getOrderItems().stream().map(OrderItem::getMenuId).collect(Collectors.toList()))
+                    .stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
 
 
-        for (OrderItem item : order.getOrderItems()) {
-            Menu menu = menuCache.get(item.getMenuId());
+            for (OrderItem item : order.getOrderItems()) {
+                Menu menu = menuCache.get(item.getMenuId());
 
-            for (MenuOption option : menu.getMenuOptions()) {
-                if (option.getRequired()) {
-                    boolean optionSelected = item.getSelectedOptions() != null &&
-                            item.getSelectedOptions().stream()
-                                    .anyMatch(selectedOption -> selectedOption.getMenuOptionId().equals(option.getId()));
-                    if (!optionSelected) {
-                        throw new IllegalArgumentException(
-                                String.format("Required option '%s' not selected for menu '%s'", option.getName(), menu.getName())
-                        );
+                for (MenuOption option : menu.getMenuOptions()) {
+                    if (option.getRequired()) {
+                        boolean optionSelected = item.getSelectedOptions() != null &&
+                                item.getSelectedOptions().stream()
+                                        .anyMatch(selectedOption -> selectedOption.getMenuOptionId().equals(option.getId()));
+                        if (!optionSelected) {
+                            throw new IllegalArgumentException(
+                                    String.format("Required option '%s' not selected for menu '%s'", option.getName(), menu.getName())
+                            );
+                        }
                     }
                 }
             }
-        }
 
-        //check multiple selection validation
-        for (OrderItem item : order.getOrderItems()) {
-            for (SelectedOption selectedOption : item.getSelectedOptions()) {
-                Menu menu = menuCache.get(item.getMenuId());
+            //check multiple selection validation
+            for (OrderItem item : order.getOrderItems()) {
+                for (SelectedOption selectedOption : item.getSelectedOptions()) {
+                    Menu menu = menuCache.get(item.getMenuId());
 
-                for(MenuOption option: menu.getMenuOptions()){
-                    if(option.getId().equals(selectedOption.getMenuOptionId())){
-                        if(!option.getMultipleSelection()){
-                            long count = item.getSelectedOptions().stream()
-                                    .filter(selectedOption1 -> selectedOption1.getSelectedChoiceIds().size() > 1).count();
-                            if(count > 0){
-                                throw new IllegalArgumentException(
-                                        String.format("Multiple selection not allowed for option '%s' in menu '%s'", option.getName(), menu.getName())
-                                );
+                    for(MenuOption option: menu.getMenuOptions()){
+                        if(option.getId().equals(selectedOption.getMenuOptionId())){
+                            if(!option.getMultipleSelection()){
+                                long count = item.getSelectedOptions().stream()
+                                        .filter(selectedOption1 -> selectedOption1.getSelectedChoiceIds().size() > 1).count();
+                                if(count > 0){
+                                    throw new IllegalArgumentException(
+                                            String.format("Multiple selection not allowed for option '%s' in menu '%s'", option.getName(), menu.getName())
+                                    );
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-        return orderRepository.save(order);
+            return orderRepository.save(order);
+        }, httpTaskExecutor);
+
+
     }
 
     @Override
-    public Order updateOrder(Order order) {
-        Order existingOrder = orderRepository.findById(order.getId()).orElseThrow(() -> new NotFoundException("Order not found"));
-        if(order.getOrderType() == null){
-            order.setOrderType(existingOrder.getOrderType());
-        }
-        if(order.getPhoneNumber() == null){
-            order.setPhoneNumber(existingOrder.getPhoneNumber());
-        }
-        if(order.getStatus() == null){
-            order.setStatus(existingOrder.getStatus());
-        }
-        if(order.getTableNumber() == null){
-            order.setTableNumber(existingOrder.getTableNumber());
-        }
-        return orderRepository.save(order);
+    public CompletableFuture<Order> updateOrder(Order order) {
+        return CompletableFuture.supplyAsync(() -> {
+            Order existingOrder = orderRepository.findById(order.getId()).orElseThrow(() -> new NotFoundException("Order not found"));
+            if(order.getOrderType() == null){
+                order.setOrderType(existingOrder.getOrderType());
+            }
+            if(order.getPhoneNumber() == null){
+                order.setPhoneNumber(existingOrder.getPhoneNumber());
+            }
+            if(order.getStatus() == null){
+                order.setStatus(existingOrder.getStatus());
+            }
+            if(order.getTableNumber() == null){
+                order.setTableNumber(existingOrder.getTableNumber());
+            }
+            return orderRepository.save(order);
+        }, httpTaskExecutor);
     }
 
     @Override
-    public void deleteOrder(Long id) {
-        orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Order not found"));
-        orderRepository.deleteById(id);
-
+    @Async("httpTaskExecutor")
+    public CompletableFuture<Void> deleteOrder(Long id) {
+        return CompletableFuture.runAsync(() -> {
+            orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Order not found"));
+            orderRepository.deleteById(id);
+        });
     }
 }

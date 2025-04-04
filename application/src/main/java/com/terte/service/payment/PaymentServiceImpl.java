@@ -9,36 +9,43 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
+    private final Executor httpTaskExecutor;
     @Override
-    public List<Payment> getAllPayments(Long storeId) {
-        List<Payment> payments = paymentRepository.findByStoreId(storeId);
-        if(payments.isEmpty()){
-            throw new NotFoundException("Payment not found");
-        }
-        return payments;
+    public CompletableFuture<List<Payment>> getAllPayments(Long storeId) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Payment> payments = paymentRepository.findByStoreId(storeId);
+            if(payments.isEmpty()){
+                throw new NotFoundException("Payment not found");
+            }
+            return payments;
+        }, httpTaskExecutor);
     }
 
     @Override
-    public Payment getPaymentById(Long id) {
-       return paymentRepository.findById(id).orElseThrow(() -> new NotFoundException("Payment not found"));
+    public CompletableFuture<Payment> getPaymentById(Long id) {
+        return CompletableFuture.supplyAsync(() -> paymentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Payment not found")), httpTaskExecutor);
     }
 
     @Override
-    public Payment createPayment(Payment payment) {
-        //TODO: 실제 결제가 진행되도록 로직 추가
-        return paymentRepository.save(payment);
+    public CompletableFuture<Payment> createPayment(Payment payment) {
+        return CompletableFuture.supplyAsync(
+                () -> paymentRepository.save(payment), httpTaskExecutor);
     }
 
     @Override
-    public Payment cancelPayment(Long id) {
-        Payment payment = paymentRepository.findById(id).orElseThrow(() -> new NotFoundException("Payment not found"));
-        payment.setStatus(PaymentStatus.PAYMENT_CANCELLED);
-        //TODO: 실제 결제가 취소되도록 로직 추가
-        return paymentRepository.save(payment);
+    public CompletableFuture<Payment> cancelPayment(Long id) {
+        return CompletableFuture.supplyAsync(() -> {
+            Payment payment = paymentRepository.findById(id).orElseThrow(() -> new NotFoundException("Payment not found"));
+            payment.setStatus(PaymentStatus.PAYMENT_CANCELLED);
+            return paymentRepository.save(payment);
+        }, httpTaskExecutor);
     }
 }
