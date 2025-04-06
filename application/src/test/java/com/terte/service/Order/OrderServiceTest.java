@@ -22,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -59,13 +58,13 @@ public class OrderServiceTest {
     void getAllOrders() {
         Long storeId = 1L;
         List<Order> orderList = List.of(new Order(1L, storeId, OrderStatus.ORDERED,10000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null), new Order(2L, storeId, OrderStatus.ORDERED,10000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null));
-        when(orderRepository.findByStoreId(storeId)).thenReturn(orderList);
+        when(orderRepository.findWithItemsByStoreId(storeId)).thenReturn(orderList);
 
         CompletableFuture<List<Order>> futureResult = orderService.getAllOrders(storeId, null);
         List<Order> result = futureResult.join();
 
         assertEquals(2, result.size());
-        verify(orderRepository,times(1)).findByStoreId(storeId);
+        verify(orderRepository,times(1)).findWithItemsByStoreId(storeId);
     }
 
     @Test
@@ -73,20 +72,20 @@ public class OrderServiceTest {
     void getOrderById() {
         Long id = 1L;
         Order order = new Order(id, 1L, OrderStatus.ORDERED,12000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
-        when(orderRepository.findById(id)).thenReturn(Optional.of(order));
+        when(orderRepository.findWithItemById(id)).thenReturn(order);
 
         CompletableFuture<Order> futureResult = orderService.getOrderById(id);
         Order result = futureResult.join();
 
         assertEquals(id, result.getId());
-        verify(orderRepository,times(1)).findById(id);
+        verify(orderRepository,times(1)).findWithItemById(id);
     }
 
     @Test
     @DisplayName("존재하지 않는 주문 조회")
     void getOrderNotFound() {
         Long id = 1L;
-        when(orderRepository.findById(id)).thenReturn(Optional.empty());
+        when(orderRepository.findWithItemById(id)).thenReturn(null);
 
         // When
         CompletableFuture<Order> futureResult = orderService.getOrderById(id);
@@ -94,7 +93,7 @@ public class OrderServiceTest {
         // Then
         ExecutionException exception = assertThrows(ExecutionException.class, futureResult::get);
         assertTrue(exception.getCause() instanceof NotFoundException);
-        verify(orderRepository,times(1)).findById(id);
+        verify(orderRepository,times(1)).findWithItemById(id);
     }
 
     @Test
@@ -139,14 +138,14 @@ public class OrderServiceTest {
     @DisplayName("주문 수정")
     void updateOrder() {
         Order order = new Order(1L, 1L, OrderStatus.ORDERED,100L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
-        when(orderRepository.findById(order.getId())).thenReturn(Optional.of(order));
+        when(orderRepository.findWithItemById(order.getId())).thenReturn(order);
         when(orderRepository.save(order)).thenReturn(order);
 
         CompletableFuture<Order> futureResult = orderService.updateOrder(order);
         Order result = futureResult.join();
 
         assertEquals(order, result);
-        verify(orderRepository,times(1)).findById(order.getId());
+        verify(orderRepository,times(1)).findWithItemById(order.getId());
         verify(orderRepository,times(1)).save(order);
 
     }
@@ -155,7 +154,7 @@ public class OrderServiceTest {
     @DisplayName("존재하지 않는 주문 수정")
     void updateOrderNotFound() {
         Order order = new Order(1L, 1L, OrderStatus.ORDERED, 1000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
-        when(orderRepository.findById(order.getId())).thenReturn(Optional.empty());
+        when(orderRepository.findWithItemById(order.getId())).thenReturn(null);
 
 
         CompletableFuture<Order> futureResult = orderService.updateOrder(order);
@@ -163,7 +162,7 @@ public class OrderServiceTest {
 
         ExecutionException exception = assertThrows(ExecutionException.class, futureResult::get);
         assertTrue(exception.getCause() instanceof NotFoundException);
-        verify(orderRepository,times(1)).findById(order.getId());
+        verify(orderRepository,times(1)).findWithItemById(order.getId());
         verify(orderRepository,never()).save(order);
     }
 
@@ -172,12 +171,12 @@ public class OrderServiceTest {
     void deleteOrder() {
         Long id = 1L;
         Order order = new Order(id, 1L, OrderStatus.ORDERED, 1000L, List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
-        when(orderRepository.findById(id)).thenReturn(Optional.of(order));
+        when(orderRepository.findWithItemById(id)).thenReturn(order);
 
         CompletableFuture<Void> futureResult = orderService.deleteOrder(id);
         futureResult.join();
 
-        verify(orderRepository,times(1)).findById(id);
+        verify(orderRepository,times(1)).findWithItemById(id);
         verify(orderRepository,times(1)).deleteById(id);
     }
 
@@ -185,13 +184,13 @@ public class OrderServiceTest {
     @DisplayName("존재하지 않는 주문 삭제")
     void deleteOrderNotFound() {
         Long id = 1L;
-        when(orderRepository.findById(id)).thenReturn(Optional.empty());
+        when(orderRepository.findWithItemById(id)).thenReturn(null);
 
         CompletableFuture<Void> futureResult = orderService.deleteOrder(id);
 
         ExecutionException exception = assertThrows(ExecutionException.class, futureResult::get);
         assertTrue(exception.getCause() instanceof NotFoundException);
-        verify(orderRepository,times(1)).findById(id);
+        verify(orderRepository,times(1)).findWithItemById(id);
         verify(orderRepository,never()).deleteById(id);
     }
 }
