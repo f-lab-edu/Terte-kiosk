@@ -57,7 +57,7 @@ public class OrderServiceTest {
     @DisplayName("모든 주문 조회")
     void getAllOrders() {
         Long storeId = 1L;
-        List<Order> orderList = List.of(new Order(1L, storeId, OrderStatus.ORDERED,10000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null), new Order(2L, storeId, OrderStatus.ORDERED,10000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null));
+        List<Order> orderList = List.of(new Order(1L, storeId, OrderStatus.ORDERED,10000L,Set.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null), new Order(2L, storeId, OrderStatus.ORDERED,10000L,Set.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null));
         when(orderRepository.findWithItemsByStoreId(storeId)).thenReturn(orderList);
 
         CompletableFuture<List<Order>> futureResult = orderService.getAllOrders(storeId, null);
@@ -71,7 +71,7 @@ public class OrderServiceTest {
     @DisplayName("주문 ID로 주문 조회")
     void getOrderById() {
         Long id = 1L;
-        Order order = new Order(id, 1L, OrderStatus.ORDERED,12000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
+        Order order = new Order(id, 1L, OrderStatus.ORDERED,12000L,Set.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
         when(orderRepository.findWithItemById(id)).thenReturn(order);
 
         CompletableFuture<Order> futureResult = orderService.getOrderById(id);
@@ -137,7 +137,7 @@ public class OrderServiceTest {
     @Test
     @DisplayName("주문 수정")
     void updateOrder() {
-        Order order = new Order(1L, 1L, OrderStatus.ORDERED,100L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
+        Order order = new Order(1L, 1L, OrderStatus.ORDERED,100L,Set.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
         when(orderRepository.findWithItemById(order.getId())).thenReturn(order);
         when(orderRepository.save(order)).thenReturn(order);
 
@@ -153,7 +153,7 @@ public class OrderServiceTest {
     @Test
     @DisplayName("존재하지 않는 주문 수정")
     void updateOrderNotFound() {
-        Order order = new Order(1L, 1L, OrderStatus.ORDERED, 1000L,List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
+        Order order = new Order(1L, 1L, OrderStatus.ORDERED, 1000L,Set.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
         when(orderRepository.findWithItemById(order.getId())).thenReturn(null);
 
 
@@ -170,7 +170,7 @@ public class OrderServiceTest {
     @DisplayName("주문 삭제")
     void deleteOrder() {
         Long id = 1L;
-        Order order = new Order(id, 1L, OrderStatus.ORDERED, 1000L, List.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
+        Order order = new Order(id, 1L, OrderStatus.ORDERED, 1000L, Set.of(new OrderItem()), OrderType.DELIVERY, "010-1234-5678",  1, null);
         when(orderRepository.findWithItemById(id)).thenReturn(order);
 
         CompletableFuture<Void> futureResult = orderService.deleteOrder(id);

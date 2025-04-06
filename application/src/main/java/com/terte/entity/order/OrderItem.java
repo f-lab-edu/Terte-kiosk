@@ -1,6 +1,5 @@
 package com.terte.entity.order;
 
-import com.terte.entity.menu.Menu;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -8,8 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -28,7 +27,7 @@ public class OrderItem {
     private Integer quantity;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "orderItem")
-    private List<SelectedOption> selectedOptions = new ArrayList<>();
+    private Set<SelectedOption> selectedOptions = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "order_id")
