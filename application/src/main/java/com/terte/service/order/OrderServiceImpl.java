@@ -14,7 +14,6 @@ import com.terte.repository.order.OrderRepository;
 import com.terte.service.menu.MenuService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -146,7 +145,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Async("httpTaskExecutor")
     public CompletableFuture<Void> deleteOrder(Long id) {
         return CompletableFuture.runAsync(() -> {
             Order order = orderRepository.findWithItemById(id);

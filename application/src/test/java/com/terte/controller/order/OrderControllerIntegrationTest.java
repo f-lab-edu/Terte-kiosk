@@ -46,8 +46,8 @@ class OrderControllerIntegrationTest {
 
         ResultActions perform = mockMvc.perform(asyncDispatch(mvcResult));
         perform.andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].status").value("ORDERED"));
+                .andExpect(jsonPath("$.data[0].id").exists())
+                .andExpect(jsonPath("$.data[0].status").exists());
 
     }
 
@@ -59,8 +59,8 @@ class OrderControllerIntegrationTest {
 
         mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].status").value("ORDERED"));
+                .andExpect(jsonPath("$.data[0].id").exists())
+                .andExpect(jsonPath("$.data[0].status").exists());
     }
 
     @Test

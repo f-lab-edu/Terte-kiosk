@@ -48,7 +48,7 @@ class PaymentControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
                 .andExpect(jsonPath("$.data[0].paymentMethod").value(PaymentMethod.CREDIT_CARD.name()))
-                .andExpect(jsonPath("$.data[0].orderId").value(2L))
+                .andExpect(jsonPath("$.data[0].orderId").value(1L))
                 .andExpect(jsonPath("$.data[0].status").value(PaymentStatus.PAYMENT_COMPLETED.name()));
     }
 

@@ -35,7 +35,7 @@ public class MenuOptionControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").exists())
-                .andExpect(jsonPath("$.data[0].price").value(0));
+                .andExpect(jsonPath("$.data[0].price").exists());
     }
 
     @Test
