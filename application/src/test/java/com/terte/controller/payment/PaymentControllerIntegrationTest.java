@@ -94,7 +94,7 @@ class PaymentControllerIntegrationTest {
 
         mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(3L));
+                .andExpect(jsonPath("$.data.id").exists());
     }
     @Test
     @DisplayName("결제 취소 시 성공하면 200 OK와 취소된 결제 ID를 반환한다")

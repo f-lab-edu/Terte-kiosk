@@ -125,24 +125,33 @@ INSERT INTO choice (id, name, price, menu_option_id) VALUES
                                                          (5, '톨 사이즈', 0, 4),
                                                          (6, '그란데 사이즈', 500, 4),
                                                          (7, '벤티 사이즈', 1000, 4);
+-- orders
 INSERT INTO orders (id, store_id, status, total_price, order_type, phone_number, table_number, create_time) VALUES
-                                                                                       (1, 101, 'ORDERED',12000, 'EATIN' ,'123-456-7890', 5, NOW()),
-                                                                                       (2, 101, 'COMPLETED',10000, 'EATIN' ,NULL, NULL, NOW());
-INSERT INTO order_item  (id, menu_id, quantity, order_id) VALUES
-                                                            (1, 1, 2, 1),
-                                                            (2, 2, 1, 1),
-                                                            (3, 2, 1, 2);
+                                                                                                                (1, 101, 'ORDERED', 20000, 'EATIN', '123-456-7890', 5, NOW()),
+                                                                                                                (2, 101, 'COMPLETED', 10000, 'EATIN', NULL, NULL, NOW());
+
+-- order_item
+INSERT INTO order_item (id, menu_id, quantity, order_id) VALUES
+                                                             (1, 1, 2, 1),   -- 아메리카노 2잔 (5,000 x 2 = 10,000)
+                                                             (2, 2, 1, 1),   -- 팥빙수 1개 (10,000)
+                                                             (3, 2, 1, 2);   -- 팥빙수 1개 (10,000)
+
+-- selected_option
 INSERT INTO selected_option (id, menu_option_id, order_item_id) VALUES
-                                                                   (1, 1, 1),
-                                                                   (2, 2, 2),
-                                                                   (3, 2, 3);
+                                                                    (1, 1, 1),
+                                                                    (2, 2, 2),
+                                                                    (3, 2, 3);
+
+-- selected_option_choice_ids
 INSERT INTO selected_option_choice_ids (selected_option_id, selected_choice_ids) VALUES
-                                                                                              (1, 1),
-                                                                                              (2, 2),
-                                                                                              (3, 3);
+                                                                                     (1, 1),
+                                                                                     (2, 2),
+                                                                                     (3, 3);
+
+-- payment
 INSERT INTO payment (id, store_id, payment_method, status, order_id, total_price) VALUES
-                                                                         (1, 101, 'CREDIT_CARD', 'PAYMENT_COMPLETED', 2, 12000),
-                                                                         (2, 101, 'CASH', 'PAYMENT_COMPLETED', 1, 10000);
+                                                                                      (1, 101, 'CREDIT_CARD', 'PAYMENT_COMPLETED', 1, 20000),  -- 아메리카노+팥빙수 주문
+                                                                                      (2, 101, 'CASH', 'PAYMENT_COMPLETED', 2, 10000);         -- 팥빙수 주문
 
 
 

@@ -14,7 +14,6 @@ import com.terte.service.helper.OrderServiceHelper;
 import com.terte.service.order.OrderService;
 import com.terte.service.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,8 +39,7 @@ public class PaymentController {
         return paymentService.getAllPayments(storeId).thenApply(payments -> {
             List<PaymentResDTO> paymentResDTOS = payments.stream().map(PaymentResDTO::from).toList();
             return ResponseEntity.ok(ApiResDTO.success(paymentResDTOS));
-        }).exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResDTO.error("Error fetching orders: " + ex.getMessage())));
+        });
 
     }
     /**
@@ -60,9 +58,8 @@ public class PaymentController {
             return orderService.getOrderById(orderId).thenCompose(order -> {
                 Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, order.getId(), order.getTotalPrice());
                 return paymentService.createPayment(payment);
-            }).thenApply(payment -> ResponseEntity.ok(ApiResDTO.success(new CommonIdResDTO(payment.getId()))))
-                    .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(ApiResDTO.error("Error creating payment: " + ex.getMessage())));
+            }).thenApply(payment -> ResponseEntity.ok(ApiResDTO.success(new CommonIdResDTO(payment.getId()))));
+
         } else if (paymentRequest.getPaymentCreateType() == PaymentCreateType.ORDER_AND_PAY){
             CreateOrderReqDTO createOrderReqDTO =  paymentRequest.getOrder();
             if(createOrderReqDTO == null){
@@ -72,9 +69,8 @@ public class PaymentController {
             return orderService.createOrder(saveTargetOrder).thenCompose(savedOrder -> {
                 Payment payment = new Payment(null, storeId, PaymentMethod.CASH, PaymentStatus.PAYMENT_COMPLETED, savedOrder.getId(), savedOrder.getTotalPrice());
                 return paymentService.createPayment(payment);
-            }).thenApply(payment -> ResponseEntity.ok(ApiResDTO.success(new CommonIdResDTO(payment.getId()))))
-                    .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(ApiResDTO.error("Error creating payment: " + ex.getMessage())));
+            }).thenApply(payment -> ResponseEntity.ok(ApiResDTO.success(new CommonIdResDTO(payment.getId()))));
+
         }
         return CompletableFuture.completedFuture(ResponseEntity.badRequest().build());
     }
@@ -86,7 +82,6 @@ public class PaymentController {
     public CompletableFuture<ResponseEntity<ApiResDTO<CommonIdResDTO>>> cancelPayment(@PathVariable Long paymentId) {
         return paymentService.cancelPayment(paymentId).thenApply(payment -> {
             return ResponseEntity.ok(ApiResDTO.success(new CommonIdResDTO(payment.getId())));
-        }).exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResDTO.error("Error cancelling payment: " + ex.getMessage())));
+        });
     }
 }
