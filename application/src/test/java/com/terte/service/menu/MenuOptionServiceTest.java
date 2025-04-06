@@ -11,8 +11,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -101,10 +101,10 @@ public class MenuOptionServiceTest {
     @DisplayName("옵션의 선택지 조회")
     void getChoicesById() {
         Choice choice = new Choice(1L, "샷 추가", 500, null);
-        MenuOption menuOption = new MenuOption(1L, "샷 추가", true, false, List.of(choice), null);
+        MenuOption menuOption = new MenuOption(1L, "샷 추가", true, false, Set.of(choice), null);
         when(optionMapRepository.findById(menuOption.getId())).thenReturn(Optional.of(menuOption));
 
-        List<Choice> result = optionService.getChoicesById(menuOption.getId());
+        Set<Choice> result = optionService.getChoicesById(menuOption.getId());
         assertEquals(menuOption.getChoices(), result);
         verify(optionMapRepository, times(1)).findById(menuOption.getId());
     }

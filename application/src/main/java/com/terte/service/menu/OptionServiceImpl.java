@@ -7,7 +7,7 @@ import com.terte.repository.menu.OptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +49,7 @@ public class OptionServiceImpl implements OptionService {
     }
 
     @Override
-    public List<Choice> getChoicesById(Long id) {
+    public Set<Choice> getChoicesById(Long id) {
         MenuOption existingMenuOption = optionRepository.findById(id).orElseThrow(() -> new NotFoundException("Option Not Found"));
         return existingMenuOption.getChoices();
     }

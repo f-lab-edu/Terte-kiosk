@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -121,7 +122,7 @@ public class OrderServiceTest {
         order.addOrderItem(orderItem);
 
         when(orderRepository.save(order)).thenReturn(order);
-        when(menuService.getMenuByids(List.of(orderItem.getMenuId()))).thenReturn(List.of(new Menu(1L,"menu",1000,new Category(),1L,"image","desc",List.of(new MenuOption(1L,"option",true,false,null,null)))));
+        when(menuService.getMenuWithOptionsAndChoicesByIds(List.of(orderItem.getMenuId()))).thenReturn(List.of(new Menu(1L,"menu",1000,new Category(),1L,"image","desc", Set.of(new MenuOption(1L,"option",true,false,null,null)))));
 
         // When
 

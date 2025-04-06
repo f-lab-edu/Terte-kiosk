@@ -2,9 +2,12 @@ package com.terte.entity.menu;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,7 +26,7 @@ public class MenuOption {
     @NotNull
     private Boolean required;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "menuOption")
-    private List<Choice> choices;
+    private Set<Choice> choices;
     @ManyToOne
     @JoinColumn(name = "menu_id")
     private Menu menu;
