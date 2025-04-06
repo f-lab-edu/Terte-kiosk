@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -87,7 +88,7 @@ public class MenuController {
         if (updateMenuReqDTO.getCategoryId() != null) {
             category = categoryService.getCategoryById(updateMenuReqDTO.getCategoryId());
         }
-        List<MenuOption> menuOptions =  menuService.getOptionsById(updateMenuReqDTO.getId());
+        Set<MenuOption> menuOptions =  menuService.getOptionsById(updateMenuReqDTO.getId());
         Menu menu = new Menu(
                 updateMenuReqDTO.getId(),
                 updateMenuReqDTO.getName(),
@@ -118,7 +119,7 @@ public class MenuController {
      */
     @GetMapping("/{menuId}/options")
     public ResponseEntity<ApiResDTO<List<OptionResDTO>>> getOptionsById(@PathVariable Long menuId) {
-        List<MenuOption> menuOptions = menuService.getOptionsById(menuId);
+        Set<MenuOption> menuOptions = menuService.getOptionsById(menuId);
         List<OptionResDTO> optionResDTOS = menuOptions.stream().map(OptionResDTO::from).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResDTO.success(optionResDTOS));
     }

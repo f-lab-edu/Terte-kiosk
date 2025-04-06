@@ -3,11 +3,12 @@ package com.terte.service.menu;
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.menu.Menu;
 import com.terte.entity.menu.MenuOption;
-import com.terte.repository.menu.*;
+import com.terte.repository.menu.MenuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +76,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
 
-    public List<MenuOption> getOptionsById(Long id){
+    public Set<MenuOption> getOptionsById(Long id){
         Menu menu = menuRepository.findById(id).orElseThrow(() -> new NotFoundException("Menu not found"));
         return menu.getMenuOptions();
     }
@@ -87,6 +88,10 @@ public class MenuServiceImpl implements MenuService {
             throw new NotFoundException("Menu not found");
         }
         return menuList;
+    }
+
+    public List<Menu> getMenuWithOptionsAndChoicesByIds(List<Long> ids) {
+        return menuRepository.findAllWithOptionsAndChoicesByIds(ids);
     }
 
 }

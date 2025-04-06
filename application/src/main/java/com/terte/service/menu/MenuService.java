@@ -5,6 +5,7 @@ import com.terte.entity.menu.MenuOption;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public interface MenuService {
@@ -13,8 +14,10 @@ public interface MenuService {
     Menu createMenu(Menu menu);
     Menu updateMenu(Menu menu);
     void deleteMenu(Long id);
-    List<MenuOption> getOptionsById(Long id);
+    Set<MenuOption> getOptionsById(Long id);
 
     List<Menu> getMenuByids(List<Long> ids);
+
+    List<Menu> getMenuWithOptionsAndChoicesByIds(List<Long> ids);
 
 }

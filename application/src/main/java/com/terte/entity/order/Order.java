@@ -11,8 +11,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -37,7 +37,7 @@ public class Order {
     private Long totalPrice;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "order")
-    private List<OrderItem> orderItems = new ArrayList<>();
+    private Set<OrderItem> orderItems = new HashSet<>();
 
     @NotNull
     @Enumerated(EnumType.STRING)

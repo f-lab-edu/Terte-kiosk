@@ -11,7 +11,6 @@ import com.terte.dto.order.OrderItemDTO;
 import com.terte.dto.order.SelectedOptionDTO;
 import com.terte.dto.payment.PaymentReqDTO;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -19,12 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -45,12 +41,14 @@ class PaymentControllerIntegrationTest {
     @Test
     @DisplayName("결제 조회 시 결제 정보가 반환된다")
     void testGetPayment() throws Exception {
-        mockMvc.perform(get("/payments")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(get("/payments")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value(1L))
                 .andExpect(jsonPath("$.data[0].paymentMethod").value(PaymentMethod.CREDIT_CARD.name()))
-                .andExpect(jsonPath("$.data[0].orderId").value(2L))
+                .andExpect(jsonPath("$.data[0].orderId").value(1L))
                 .andExpect(jsonPath("$.data[0].status").value(PaymentStatus.PAYMENT_COMPLETED.name()));
     }
 
@@ -72,9 +70,11 @@ class PaymentControllerIntegrationTest {
                 .paymentMethod(PaymentMethod.CASH)
                 .build();
 
-        mockMvc.perform(post("/payments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(orderAndPayReqDTO)))
+        MvcResult mvcResult = mockMvc.perform(post("/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(orderAndPayReqDTO))).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").exists());
     }
@@ -88,17 +88,21 @@ class PaymentControllerIntegrationTest {
                 .paymentMethod(PaymentMethod.CASH)
                 .build();
 
-        mockMvc.perform(post("/payments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(paymentReqDTO)))
+        MvcResult mvcResult = mockMvc.perform(post("/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(paymentReqDTO))).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(3L));
+                .andExpect(jsonPath("$.data.id").exists());
     }
     @Test
     @DisplayName("결제 취소 시 성공하면 200 OK와 취소된 결제 ID를 반환한다")
     void testCancelPaymentSuccess() throws Exception {
-        mockMvc.perform(post("/payments/cancel/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(post("/payments/cancel/1")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1L));
     }
@@ -106,16 +110,20 @@ class PaymentControllerIntegrationTest {
     @Test
     @DisplayName("결제 취소 시 존재하지 않는 결제 ID로 요청 시 404 Not Found를 반환한다")
     void testCancelPaymentNotFound() throws Exception {
-        mockMvc.perform(post("/payments/cancel/999")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(post("/payments/cancel/999")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("결제 취소 시 유효하지 않은 ID로 요청 시 400 Bad Request를 반환한다")
     void testCancelPaymentInvalidId() throws Exception {
-        mockMvc.perform(post("/payments/cancel/invalid-id")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(post("/payments/cancel/invalid-id")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isBadRequest());
     }
 

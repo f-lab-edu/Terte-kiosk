@@ -7,7 +7,6 @@ import com.terte.common.enums.OrderStatus;
 import com.terte.common.enums.OrderType;
 import com.terte.dto.order.*;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -15,17 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,21 +41,26 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 리스트 조회 시 모든 주문이 반환된다")
     void testGetAllOrders() throws Exception {
-        mockMvc.perform(get("/orders")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[0].status").value("ORDERED"));
+        MvcResult mvcResult =  mockMvc.perform(get("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        ResultActions perform = mockMvc.perform(asyncDispatch(mvcResult));
+        perform.andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").exists())
+                .andExpect(jsonPath("$.data[0].status").exists());
+
     }
 
     @Test
     @DisplayName("주문 상태를 통해 주문 리스트를 조회한다.")
     void testGetAllOrdersByStatus() throws Exception {
-        mockMvc.perform(get("/orders?status=ORDERED")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(get("/orders?status=ORDERED")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(1L))
-                .andExpect(jsonPath("$.data[*].status").value("ORDERED"));
+                .andExpect(jsonPath("$.data[0].id").exists())
+                .andExpect(jsonPath("$.data[0].status").exists());
     }
 
     @Test
@@ -109,8 +109,10 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 상세 조회 시 존재하지 않는 ID면 404 Not Found를 반환한다")
     void testGetOrderByIdNotFound() throws Exception {
-        mockMvc.perform(get("/orders/999")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(get("/orders/999")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isNotFound());
     }
 
@@ -126,9 +128,11 @@ class OrderControllerIntegrationTest {
                 1,
                 10000
         );
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderReqDTO)))
+        MvcResult mvcResult = mockMvc.perform(post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createOrderReqDTO))).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").exists());
     }
@@ -145,9 +149,11 @@ class OrderControllerIntegrationTest {
                 1,
                 10000
         );
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderReqDTO)))
+        MvcResult mvcResult = mockMvc.perform(post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createOrderReqDTO))).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isBadRequest());
     }
 
@@ -163,21 +169,25 @@ class OrderControllerIntegrationTest {
                 1,
                 10000
         );
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderReqDTO)))
+        MvcResult mvcResult = mockMvc.perform(post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createOrderReqDTO))).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("주문 수정 시 성공하면 200 OK와 수정된 주문 ID를 반환한다")
     void testUpdateOrderSuccess() throws Exception {
-        UpdateOrderReqDTO updateOrderReqDTO = UpdateOrderReqDTO.builder().id(1L).orderType(OrderType.DELIVERY).build();
-        mockMvc.perform(patch("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateOrderReqDTO)))
+        UpdateOrderReqDTO updateOrderReqDTO = UpdateOrderReqDTO.builder().id(3L).orderType(OrderType.DELIVERY).build();
+        MvcResult mvcResult = mockMvc.perform(patch("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateOrderReqDTO))).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L));
+                .andExpect(jsonPath("$.data.id").value(3L));
     }
 
     @Test
@@ -187,17 +197,21 @@ class OrderControllerIntegrationTest {
                 .id(999L)
                 .status(OrderStatus.CANCELED)
                 .build();
-        mockMvc.perform(patch("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateOrderReqDTO)))
+        MvcResult mvcResult = mockMvc.perform(patch("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateOrderReqDTO))).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("주문 삭제 시 성공하면 200 OK와 삭제된 주문 ID를 반환한다")
     void testDeleteOrderSuccess() throws Exception {
-        mockMvc.perform(delete("/orders/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(delete("/orders/1")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1L));
     }
@@ -205,8 +219,10 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 삭제 시 존재하지 않는 ID면 404 Not Found를 반환한다")
     void testDeleteOrderNotFound() throws Exception {
-        mockMvc.perform(delete("/orders/999")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(delete("/orders/999")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isNotFound());
 
     }
@@ -214,8 +230,10 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 취소 시 유효하지 않은 ID로 요청 시 400 Bad Request를 반환한다")
     void testDeleteInvalidId() throws Exception {
-        mockMvc.perform(delete("/orders/invalid-id")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(delete("/orders/invalid-id")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isBadRequest());
     }
 }

@@ -2,9 +2,12 @@ package com.terte.entity.menu;
 
 import com.terte.entity.category.Category;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,7 +27,7 @@ public class Menu {
     private String image;
     private String description;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "menu")
-    private List<MenuOption> menuOptions;
+    private Set<MenuOption> menuOptions;
 }
 
 

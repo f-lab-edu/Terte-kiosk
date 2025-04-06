@@ -2,23 +2,23 @@ package com.terte.service.order;
 
 import com.terte.common.enums.OrderStatus;
 import com.terte.common.exception.NotFoundException;
+import com.terte.dto.order.OrderEventDTO;
+import com.terte.dto.order.OrderItemDTO;
 import com.terte.entity.menu.Menu;
 import com.terte.entity.menu.MenuOption;
 import com.terte.entity.order.Order;
 import com.terte.entity.order.OrderItem;
 import com.terte.entity.order.SelectedOption;
+import com.terte.event.OrderEventProducer;
 import com.terte.repository.order.OrderRepository;
 import com.terte.service.menu.MenuService;
-import com.terte.service.menu.OptionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -28,16 +28,16 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final MenuService menuService;
     private final Executor httpTaskExecutor;
+    private final OrderEventProducer orderEventProducer;
     @Override
-    @Async("httpTaskExecutor")
     public CompletableFuture<List<Order>> getAllOrders(Long storeId, OrderStatus status) {
         return CompletableFuture.supplyAsync(() -> {
             List<Order> orders;
 
             if (status == null) {
-                orders = orderRepository.findByStoreId(storeId);
+                orders = orderRepository.findWithItemsByStoreId(storeId);
             } else {
-                orders = orderRepository.findByStoreIdAndStatus(storeId, status);
+                orders = orderRepository.findWithItemsByStoreIdAndStatus(storeId, status);
             }
 
             if (orders.isEmpty()) {
@@ -50,10 +50,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public CompletableFuture<Order> getOrderById(Long id) {
-        return CompletableFuture.supplyAsync(() ->
-                        orderRepository.findById(id)
-                                .orElseThrow(() -> new NotFoundException("Order not found"))
-                , httpTaskExecutor);
+        return CompletableFuture.supplyAsync(() ->{
+            Order order = orderRepository.findWithItemById(id);
+            if(order == null) {
+                throw new NotFoundException("Order not found");
+            }
+            return order;
+        }, httpTaskExecutor);
     }
 
 
@@ -63,8 +66,11 @@ public class OrderServiceImpl implements OrderService {
     public CompletableFuture<Order> createOrder(Order order) {
         return CompletableFuture.supplyAsync(() -> {
 
-            Map<Long, Menu> menuCache = menuService.getMenuByids(order.getOrderItems().stream().map(OrderItem::getMenuId).collect(Collectors.toList()))
-                    .stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
+            Map<Long, Menu> menuCache = menuService.getMenuWithOptionsAndChoicesByIds(
+                    order.getOrderItems().stream()
+                            .map(OrderItem::getMenuId)
+                            .collect(Collectors.toList())
+            ).stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
 
 
             for (OrderItem item : order.getOrderItems()) {
@@ -104,6 +110,11 @@ public class OrderServiceImpl implements OrderService {
                     }
                 }
             }
+
+            //카프카 이벤트 발행
+            OrderEventDTO orderEvent = new OrderEventDTO(order.getStoreId(), order.getOrderItems().stream().map(OrderItemDTO::from).collect(Collectors.toList()));
+            orderEventProducer.sendOrderEvent(orderEvent);
+
             return orderRepository.save(order);
         }, httpTaskExecutor);
 
@@ -113,7 +124,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public CompletableFuture<Order> updateOrder(Order order) {
         return CompletableFuture.supplyAsync(() -> {
-            Order existingOrder = orderRepository.findById(order.getId()).orElseThrow(() -> new NotFoundException("Order not found"));
+            Order existingOrder = orderRepository.findWithItemById(order.getId());
+            if(existingOrder == null) {
+                throw new NotFoundException("Order not found");
+            }
             if(order.getOrderType() == null){
                 order.setOrderType(existingOrder.getOrderType());
             }
@@ -131,10 +145,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Async("httpTaskExecutor")
     public CompletableFuture<Void> deleteOrder(Long id) {
         return CompletableFuture.runAsync(() -> {
-            orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Order not found"));
+            Order order = orderRepository.findWithItemById(id);
+            if(order == null) {
+                throw new NotFoundException("Order not found");
+            }
             orderRepository.deleteById(id);
         });
     }

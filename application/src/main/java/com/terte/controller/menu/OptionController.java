@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -75,7 +76,7 @@ public class OptionController {
      */
     @GetMapping("/{optionId}/choices")
     public ResponseEntity<ApiResDTO<List<ChoiceResDTO>>> getMenuById(@PathVariable Long optionId) {
-        List<Choice> choices = optionService.getChoicesById(optionId);
+        Set<Choice> choices = optionService.getChoicesById(optionId);
         List<ChoiceResDTO> choiceResDTOList = choices.stream().map(ChoiceResDTO::from).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResDTO.success(choiceResDTOList));
 

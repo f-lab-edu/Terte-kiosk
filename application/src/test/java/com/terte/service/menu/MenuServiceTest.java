@@ -3,8 +3,9 @@ package com.terte.service.menu;
 import com.terte.common.exception.NotFoundException;
 import com.terte.entity.category.Category;
 import com.terte.entity.menu.Menu;
-import com.terte.repository.menu.*;
-import com.terte.service.category.CategoryService;
+import com.terte.repository.menu.ChoiceRepository;
+import com.terte.repository.menu.MenuRepository;
+import com.terte.repository.menu.OptionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,8 +24,6 @@ class MenuServiceTest {
 
     @Mock
     MenuRepository menuRepository;
-    @Mock
-    CategoryService categoryService;
     @Mock
     OptionRepository optionRepository;
     @Mock
@@ -106,8 +106,8 @@ class MenuServiceTest {
     @DisplayName("존재하는 메뉴 수정")
     void updateMenu() {
         Long storeId = 1L;
-        Menu existingMenu = new Menu(1L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of());
-        Menu updatedMenu = new Menu(1L, "아메리카노", 15000, null, storeId, "image", "아메리카노 설명", List.of());
+        Menu existingMenu = new Menu(1L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", Set.of());
+        Menu updatedMenu = new Menu(1L, "아메리카노", 15000, null, storeId, "image", "아메리카노 설명", Set.of());
 
         when(menuRepository.findById(1L)).thenReturn(Optional.of(existingMenu));
         when(menuRepository.save(updatedMenu)).thenReturn(updatedMenu);
@@ -128,7 +128,7 @@ class MenuServiceTest {
     @DisplayName("존재하지 않는 메뉴 수정")
     void updateMenuNotFound() {
         Long storeId = 1L;
-        Menu notExistingMenu = new Menu(2L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of());
+        Menu notExistingMenu = new Menu(2L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", Set.of());
 
         when(menuRepository.findById(2L)).thenReturn(Optional.empty());
 
@@ -141,9 +141,9 @@ class MenuServiceTest {
     @DisplayName("일부 필드가 누락된 채로 메뉴 수정")
     void updateMenuWithMissingFields() {
         Long storeId = 1L;
-        Menu existingMenu = new Menu(3L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", List.of());
+        Menu existingMenu = new Menu(3L, "아메리카노", 10000, null, storeId, "image", "아메리카노 설명", Set.of());
         Menu partialUpdateMenu = new Menu(3L, null, 777, null, storeId, null, null,null);
-        Menu expectedUpdatedMenu = new Menu(3L, "아메리카노", 777, null, storeId, "image", "아메리카노 설명", List.of());
+        Menu expectedUpdatedMenu = new Menu(3L, "아메리카노", 777, null, storeId, "image", "아메리카노 설명", Set.of());
 
         when(menuRepository.findById(3L)).thenReturn(Optional.of(existingMenu));
         when(menuRepository.save(any())).thenReturn(expectedUpdatedMenu);
@@ -163,7 +163,7 @@ class MenuServiceTest {
     void deleteMenu() {
         Long menuId = 3L;
 
-        Menu existingMenu = new Menu(menuId, "아메리카노", 10000, null, 1L, "image", "아메리카노 설명", List.of());
+        Menu existingMenu = new Menu(menuId, "아메리카노", 10000, null, 1L, "image", "아메리카노 설명", Set.of());
 
         when(menuRepository.findById(menuId)).thenReturn(Optional.of(existingMenu));
 

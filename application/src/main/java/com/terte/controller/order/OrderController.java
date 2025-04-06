@@ -3,12 +3,14 @@ package com.terte.controller.order;
 import com.terte.common.enums.OrderStatus;
 import com.terte.dto.common.ApiResDTO;
 import com.terte.dto.common.CommonIdResDTO;
-import com.terte.dto.order.*;
+import com.terte.dto.order.CreateOrderReqDTO;
+import com.terte.dto.order.OrderDetailResDTO;
+import com.terte.dto.order.OrderResDTO;
+import com.terte.dto.order.UpdateOrderReqDTO;
 import com.terte.entity.order.Order;
 import com.terte.service.helper.OrderServiceHelper;
 import com.terte.service.order.OrderService;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,9 +42,7 @@ public class OrderController {
                     List<OrderResDTO> orderResDTOS = orders.stream().map(OrderResDTO::from).toList();
                     return ResponseEntity.ok(ApiResDTO.success(orderResDTOS));
                 }
-        )
-                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(ApiResDTO.error("Error fetching orders: " + ex.getMessage())));
+        );
     }
 
     /**
@@ -56,8 +56,7 @@ public class OrderController {
                     OrderDetailResDTO orderDetail = OrderDetailResDTO.from(order);
                     return ResponseEntity.ok(ApiResDTO.success(orderDetail));
                 }
-        ).exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResDTO.error("Error fetching order: " + ex.getMessage())));
+        );
     }
 
     /**
@@ -70,8 +69,7 @@ public class OrderController {
         Order order = orderServiceHelper.createOrder(createOrderReqDTO, storeId);
         return orderService.createOrder(order).thenApply(
                 createdOrder -> ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(createdOrder.getId()).build()))
-        ).exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResDTO.error("Error creating order: " + ex.getMessage())));
+        );
     }
     /**
      * PATCH /categories
@@ -85,8 +83,7 @@ public class OrderController {
         Order order = new Order(updateOrderReqDTO.getId(), storeId, updateOrderReqDTO.getStatus(), null ,null, updateOrderReqDTO.getOrderType(), updateOrderReqDTO.getPhoneNumber(), updateOrderReqDTO.getTableNumber(),null);
         return orderService.updateOrder(order).thenApply(
                 updatedOrder -> ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(updatedOrder.getId()).build()))
-        ).exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResDTO.error("Error updating order: " + ex.getMessage())));
+        );
     }
     /**
      * DELETE /categories
@@ -96,7 +93,6 @@ public class OrderController {
     public CompletableFuture<ResponseEntity<ApiResDTO<CommonIdResDTO>>> deleteOrder(@PathVariable Long orderId) {
         return orderService.deleteOrder(orderId).thenApply(
                 v -> ResponseEntity.ok(ApiResDTO.success(CommonIdResDTO.builder().id(orderId).build()))
-        ).exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResDTO.error("Error deleting order: " + ex.getMessage())));
+        );
     }
 }

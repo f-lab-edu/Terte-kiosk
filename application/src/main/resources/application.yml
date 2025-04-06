@@ -7,3 +7,10 @@ spring:
     hibernate:
       ddl-auto: create
     show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: popular-menu-group
+redis:
+  host: localhost
+  port: 6379
