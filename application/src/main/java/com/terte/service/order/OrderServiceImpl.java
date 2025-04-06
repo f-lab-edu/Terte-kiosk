@@ -36,9 +36,9 @@ public class OrderServiceImpl implements OrderService {
             List<Order> orders;
 
             if (status == null) {
-                orders = orderRepository.findByStoreId(storeId);
+                orders = orderRepository.findWithItemsByStoreId(storeId);
             } else {
-                orders = orderRepository.findByStoreIdAndStatus(storeId, status);
+                orders = orderRepository.findWithItemsByStoreIdAndStatus(storeId, status);
             }
 
             if (orders.isEmpty()) {
@@ -51,10 +51,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public CompletableFuture<Order> getOrderById(Long id) {
-        return CompletableFuture.supplyAsync(() ->
-                        orderRepository.findById(id)
-                                .orElseThrow(() -> new NotFoundException("Order not found"))
-                , httpTaskExecutor);
+        return CompletableFuture.supplyAsync(() ->{
+            Order order = orderRepository.findWithItemById(id);
+            if(order == null) {
+                throw new NotFoundException("Order not found");
+            }
+            return order;
+        }, httpTaskExecutor);
     }
 
 
@@ -122,7 +125,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public CompletableFuture<Order> updateOrder(Order order) {
         return CompletableFuture.supplyAsync(() -> {
-            Order existingOrder = orderRepository.findById(order.getId()).orElseThrow(() -> new NotFoundException("Order not found"));
+            Order existingOrder = orderRepository.findWithItemById(order.getId());
+            if(existingOrder == null) {
+                throw new NotFoundException("Order not found");
+            }
             if(order.getOrderType() == null){
                 order.setOrderType(existingOrder.getOrderType());
             }
@@ -143,7 +149,10 @@ public class OrderServiceImpl implements OrderService {
     @Async("httpTaskExecutor")
     public CompletableFuture<Void> deleteOrder(Long id) {
         return CompletableFuture.runAsync(() -> {
-            orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Order not found"));
+            Order order = orderRepository.findWithItemById(id);
+            if(order == null) {
+                throw new NotFoundException("Order not found");
+            }
             orderRepository.deleteById(id);
         });
     }

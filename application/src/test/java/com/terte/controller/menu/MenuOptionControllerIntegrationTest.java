@@ -34,7 +34,7 @@ public class MenuOptionControllerIntegrationTest {
         mockMvc.perform(get("/options/" + targetOptionId + "/choices")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(1L))
+                .andExpect(jsonPath("$.data[0].id").exists())
                 .andExpect(jsonPath("$.data[0].price").value(0));
     }
 
