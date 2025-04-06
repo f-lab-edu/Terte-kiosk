@@ -187,7 +187,6 @@ public class OrderServiceTest {
         when(orderRepository.findById(id)).thenReturn(Optional.empty());
 
         CompletableFuture<Void> futureResult = orderService.deleteOrder(id);
-        futureResult.join();
 
         ExecutionException exception = assertThrows(ExecutionException.class, futureResult::get);
         assertTrue(exception.getCause() instanceof NotFoundException);
