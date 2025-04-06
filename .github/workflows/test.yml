@@ -106,10 +106,12 @@ jobs:
           SPRING_DATASOURCE_USERNAME: test_user
           SPRING_DATASOURCE_PASSWORD: test
           SPRING_JPA_HIBERNATE_DDL_AUTO: none
-        run: ./gradlew :application:integrationTest --continue --quiet
-      
+        run: ./gradlew :application:integrationTest --continue --warn | tee test.log
 
-      - name: Print Gradle test logs on failure
+
+      - name: Show Failed Tests
         if: failure()
-        run: cat gradle-test.log
+        run: |
+          echo "📛 Failed Tests:"
+          grep --context=5 FAILED test.log || echo "✅ All tests passed"
 
