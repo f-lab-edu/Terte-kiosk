@@ -180,14 +180,14 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("주문 수정 시 성공하면 200 OK와 수정된 주문 ID를 반환한다")
     void testUpdateOrderSuccess() throws Exception {
-        UpdateOrderReqDTO updateOrderReqDTO = UpdateOrderReqDTO.builder().id(1L).orderType(OrderType.DELIVERY).build();
+        UpdateOrderReqDTO updateOrderReqDTO = UpdateOrderReqDTO.builder().id(3L).orderType(OrderType.DELIVERY).build();
         MvcResult mvcResult = mockMvc.perform(patch("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateOrderReqDTO))).andReturn();
 
         mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L));
+                .andExpect(jsonPath("$.data.id").value(3L));
     }
 
     @Test

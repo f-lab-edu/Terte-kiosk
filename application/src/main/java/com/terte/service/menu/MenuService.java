@@ -17,4 +17,6 @@ public interface MenuService {
 
     List<Menu> getMenuByids(List<Long> ids);
 
+    List<Menu> getMenuWithOptionsAndChoicesByIds(List<Long> ids);
+
 }

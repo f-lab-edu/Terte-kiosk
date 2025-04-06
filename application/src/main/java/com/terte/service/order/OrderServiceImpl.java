@@ -31,7 +31,6 @@ public class OrderServiceImpl implements OrderService {
     private final Executor httpTaskExecutor;
     private final OrderEventProducer orderEventProducer;
     @Override
-    @Async("httpTaskExecutor")
     public CompletableFuture<List<Order>> getAllOrders(Long storeId, OrderStatus status) {
         return CompletableFuture.supplyAsync(() -> {
             List<Order> orders;
@@ -65,8 +64,11 @@ public class OrderServiceImpl implements OrderService {
     public CompletableFuture<Order> createOrder(Order order) {
         return CompletableFuture.supplyAsync(() -> {
 
-            Map<Long, Menu> menuCache = menuService.getMenuByids(order.getOrderItems().stream().map(OrderItem::getMenuId).collect(Collectors.toList()))
-                    .stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
+            Map<Long, Menu> menuCache = menuService.getMenuWithOptionsAndChoicesByIds(
+                    order.getOrderItems().stream()
+                            .map(OrderItem::getMenuId)
+                            .collect(Collectors.toList())
+            ).stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
 
 
             for (OrderItem item : order.getOrderItems()) {

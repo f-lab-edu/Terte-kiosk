@@ -89,4 +89,8 @@ public class MenuServiceImpl implements MenuService {
         return menuList;
     }
 
+    public List<Menu> getMenuWithOptionsAndChoicesByIds(List<Long> ids) {
+        return menuRepository.findAllWithOptionsAndChoicesByIds(ids);
+    }
+
 }
